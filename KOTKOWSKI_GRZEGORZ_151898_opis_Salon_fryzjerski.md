@@ -1,4 +1,5 @@
 # Salon Fryzjerski - Temat nr 17
+---
 
 ## Link do repozytorium projektu na GitHubie
 [PK_SO_151898 - GitHub Repository](git@github.com:lunnarphase/PK_SO_151898.git)
@@ -22,8 +23,6 @@ Zadanie stanowi rozszerzenie problemu spiacego fryzjera/golibrody na wielu fryzj
 - **Kasa jest wspolna dla wszystkich fryzjerow.**  
   Platnosc moze byc dokonana banknotami o nominalach **10 zl**, **20 zl** i **50 zl**.
 
----
-
 ## Zasada dzialania fryzjera (cyklicznie):
 1. Wybiera klienta z poczekalni (ewentualnie czeka, jesli go jeszcze nie ma).
 2. Znajduje wolny fotel.
@@ -32,8 +31,6 @@ Zadanie stanowi rozszerzenie problemu spiacego fryzjera/golibrody na wielu fryzj
 5. Zwalnia fotel.
 6. Wylicza reszte i pobiera ja ze wspolnej kasy. Jesli nie jest to mozliwe, czeka, az pojawia sie odpowiednie nominaly w wyniku pracy innego fryzjera.
 7. Przekazuje reszte klientowi.
-
----
 
 ## Zasada dzialania klienta (cyklicznie):
 1. Zarabia pieniadze.
@@ -46,13 +43,9 @@ Zadanie stanowi rozszerzenie problemu spiacego fryzjera/golibrody na wielu fryzj
 6. Czeka na reszte.
 7. Opuszcza salon i wraca do zarabiania pieniedzy.
 
----
-
 ## Dodatkowe polecenia kierownika:
 1. Na polecenie kierownika (**sygnal 1**) dany fryzjer konczy prace przed zamknieciem salonu.
 2. Na polecenie kierownika (**sygnal 2**) wszyscy klienci (zarowno ci siedzacy na fotelach, jak i w poczekalni) natychmiast opuszczaja salon.
-
----
 
 ## Do zaimplementowania
 Nalezy napisac procedury symulujace dzialanie salonu fryzjerskiego:

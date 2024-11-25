@@ -1,10 +1,7 @@
 # Salon Fryzjerski - Temat nr 17
----
 
 ## Link do repozytorium projektu na GitHubie
-[PK_SO_151898 - GitHub Repository](git@github.com:lunnarphase/PK_SO_151898.git)
-
----
+[-> PK_SO_151898 - GitHub Repository](git@github.com:lunnarphase/PK_SO_151898.git)
 
 ## Opis zadania
 

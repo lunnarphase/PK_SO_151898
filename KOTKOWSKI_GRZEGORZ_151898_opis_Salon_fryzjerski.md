@@ -1,12 +1,8 @@
 # Salon Fryzjerski - Temat nr 17
 
-# Link do repozytorium projektu na GitHubie
-[PK_SO_151898 <- GitHub Repository](git@github.com:lunnarphase/PK_SO_151898.git)
-
 # Opis zadania
 Zadanie stanowi rozszerzenie problemu spiacego fryzjera/golibrody na wielu fryzjerow. Wiecej na temat problemu mozna przeczytac tutaj:  
 [Problem spiacego golibrody - Wikipedia](https://pl.wikipedia.org/wiki/Problem_śpiącego_golibrody)
-
 
 
 ## Warunki poczatkowe:

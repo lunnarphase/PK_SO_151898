@@ -1,4 +1,4 @@
-## Salon Fryzjerski - Temat nr 17
+# Salon Fryzjerski - Temat nr 17
 ---
 ## Opis zadania
 Zadanie stanowi rozszerzenie problemu spiacego fryzjera/golibrody na wielu fryzjerow. Wiecej na temat problemu mozna przeczytac tutaj:  

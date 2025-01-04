@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\ObslugaSygnalu.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Source Files\\ObslugaSygnalu.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\ObslugaSygnalu.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Header  Files\\ObslugaSygnalu.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\Constants.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Header  Files\\Constants.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\ObslugaSygnalu.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Source Files\\ObslugaSygnalu.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\Kasa.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -62,7 +62,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Constants.h",
               "DocumentMoniker": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\Constants.h",
               "RelativeDocumentMoniker": "Header  Files\\Constants.h",
@@ -71,8 +71,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-01-04T11:43:49.853Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -98,8 +97,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-01-04T11:43:28.065Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -112,8 +110,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAA+AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-01-04T11:43:33.219Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -139,8 +136,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-01-04T11:42:37.38Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -166,8 +162,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-01-04T11:42:48.637Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -180,8 +175,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-01-04T11:42:55.762Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -194,34 +188,33 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-01-04T11:43:00.149Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ObslugaSygnalu.cpp",
-              "DocumentMoniker": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\ObslugaSygnalu.cpp",
-              "RelativeDocumentMoniker": "Source Files\\ObslugaSygnalu.cpp",
-              "ToolTip": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\ObslugaSygnalu.cpp",
-              "RelativeToolTip": "Source Files\\ObslugaSygnalu.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-01-04T11:43:19.757Z",
+              "DocumentIndex": 1,
+              "Title": "ObslugaSygnalu.h",
+              "DocumentMoniker": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\ObslugaSygnalu.h",
+              "RelativeDocumentMoniker": "Header  Files\\ObslugaSygnalu.h",
+              "ToolTip": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\ObslugaSygnalu.h",
+              "RelativeToolTip": "Header  Files\\ObslugaSygnalu.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-01-04T11:43:09.983Z",
               "IsPinned": true,
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ObslugaSygnalu.h",
-              "DocumentMoniker": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\ObslugaSygnalu.h",
-              "RelativeDocumentMoniker": "Header  Files\\ObslugaSygnalu.h",
-              "ToolTip": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Header  Files\\ObslugaSygnalu.h",
-              "RelativeToolTip": "Header  Files\\ObslugaSygnalu.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-01-04T11:43:09.983Z",
+              "Title": "ObslugaSygnalu.cpp",
+              "DocumentMoniker": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\ObslugaSygnalu.cpp",
+              "RelativeDocumentMoniker": "Source Files\\ObslugaSygnalu.cpp",
+              "ToolTip": "C:\\Users\\grzes\\Desktop\\SO\\PK_SO_151898\\Source Files\\ObslugaSygnalu.cpp",
+              "RelativeToolTip": "Source Files\\ObslugaSygnalu.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-01-04T11:43:19.757Z",
               "IsPinned": true,
               "EditorCaption": ""
             },

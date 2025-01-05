@@ -14,4 +14,7 @@ public:
 	condition_variable cvReszta; // zmienna warunkowa dla oczekujacych na reszte
 
 	Kasa(int b10, int b20, int b50);
+
+	void dodajBanknot(int nominal);
+	bool wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50);
 };

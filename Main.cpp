@@ -1,3 +1,8 @@
+#include <iostream>
+#include <thread>
+#include <ctime>
+#include <csignal>
+
 #include "Salon.h"
 #include "Kasa.h"
 #include "Fryzjer.h"
@@ -5,9 +10,7 @@
 #include "ObslugaSygnalu.h"
 #include "Constants.h"
 
-#include <iostream>
-#include <thread>
-#include <ctime>
+using namespace std;
 
 Salon salon(N, K);
 Kasa kasa(10, 10, 5);
@@ -15,8 +18,8 @@ Kasa kasa(10, 10, 5);
 int main() {
     srand(time(nullptr));
 
-    signal(SIGUSR1, obslugaSygnalu1); // sygnal 1
-    signal(SIGUSR2, obslugaSygnalu2); // sygnal 2
+    signal(SIGINT, obslugaSygnalu1); // sygnal 1
+    signal(SIGTERM, obslugaSygnalu2); // sygnal 2
 
     // utworzenie fryzjerow
     vector<Fryzjer> fryzjerzy;

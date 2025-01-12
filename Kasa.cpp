@@ -6,7 +6,7 @@ Kasa::Kasa(int b10, int b20, int b50)
 
 void Kasa::dodajBanknot(int nominal) {
 
-    lock_guard<mutex> lock(mtx); // blokada muteksa, break - zwolnienie
+    lock_guard<mutex> lock(mtxKasa); // blokada muteksa, break - zwolnienie
 
     switch (nominal)
     {
@@ -22,12 +22,12 @@ void Kasa::dodajBanknot(int nominal) {
     default:
         break;
     }
-    cv.notify_all(); // powiadom fryzjerow oczekujacych na reszte
+    cvReszta.notify_all(); // powiadom fryzjerow oczekujacych na reszte
 }
 
 bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
 {
-    unique_lock<mutex> lock(mtx); // blokada muteksa
+    unique_lock<mutex> lock(mtxKasa); // blokada muteksa
 
     while (true)
     {
@@ -64,7 +64,7 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
         }
         else {
             // nie wydawaj reszty, czekaj na wplate nowych banknotow
-            cv.wait(lock);
+            cvReszta.wait(lock);
         }
     }
 }

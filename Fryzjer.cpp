@@ -3,6 +3,8 @@
 #include "Kasa.h"
 #include "Constants.h"
 
+using namespace std;
+
 extern Salon salon;
 extern Kasa kasa;
 extern std::atomic<bool> sygnal1;

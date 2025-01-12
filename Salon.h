@@ -18,4 +18,6 @@ public:
 	condition_variable cvPoczekalnia; // zmienna warunkowa dla fryzjerow czekajacych na klientow
 
 	Salon(int nFotele, int kPoczekalnia);
+
+	Salon& operator=(const Salon& other);
 };

@@ -27,7 +27,6 @@
     <ClCompile Include="Salon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Constants.h" />
     <ClInclude Include="Fryzjer.h" />
     <ClInclude Include="Kasa.h" />
     <ClInclude Include="Klient.h" />

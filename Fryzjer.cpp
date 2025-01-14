@@ -1,13 +1,13 @@
 #include "Fryzjer.h"
 #include "Salon.h"
 #include "Kasa.h"
-#include "Constants.h"
 
 using namespace std;
 
 extern Salon salon;
 extern Kasa kasa;
-extern std::atomic<bool> sygnal1;
+extern atomic<bool> sygnal1;
+extern atomic<bool> salonOtwarty;
 
 Fryzjer::Fryzjer(int id) : id(id) {}
 
@@ -17,9 +17,14 @@ void Fryzjer::dzialaj()
 {
     while (true)
     {
+        if (sygnal1 || !salonOtwarty) { // sprawdzenie czy salon jest otwarty
+            cout << "Fryzjer " << id << " konczy prace." << endl;
+            break;
+        }
+
         if (sygnal1) {
             // fryzjer konczy prac?
-            cout << "Fryzjer " << id << " konczy prac?." << endl;
+            cout << "Fryzjer " << id << " konczy prace." << endl;
             break;
         }
 
@@ -46,7 +51,7 @@ void Fryzjer::dzialaj()
             cout << "Fryzjer " << id << " obsluguje klienta " << klientId << "." << endl;
         }
         else {
-            cout << "Brak wolnych foteli!" << endl;
+            cout << " -> Brak wolnych foteli !" << endl;
             continue;
         }
         lockFotele.unlock();
@@ -72,18 +77,22 @@ void Fryzjer::dzialaj()
             bool resztaWydana = kasa.wydajReszte(reszta, wydane10, wydane20, wydane50);
 
             if (resztaWydana) {
-                cout << "Fryzjer " << id << " wyda? reszt? klientowi " << klientId << "." << endl;
+                cout << "Fryzjer " << id << " wydaje reszte klientowi " << klientId << "." << endl;
             }
             else {
-                // Nie powinno si? zdarzy?, poniewa? funkcja wydajReszte czeka a? b?dzie mo?na wyda? reszt?
+                // nie powinno sie zdarzyc
             }
         }
 
-        // Przeka? reszt? klientowi (symulacja)
-        // ...
+        // przekaz reszte klientowi (symulacja)
 
         if (sygnal1) {
-            cout << "Fryzjer " << id << " ko?czy prac? po obs?udze klienta." << endl;
+            cout << "Fryzjer " << id << " konczy prace po obsludze klienta." << endl;
+            break;
+        }
+
+        if (!salonOtwarty) {
+            cout << "Fryzjer " << id << " konczy prace." << endl;
             break;
         }
     }

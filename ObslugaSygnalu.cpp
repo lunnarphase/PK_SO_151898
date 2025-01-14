@@ -1,5 +1,4 @@
 #include "ObslugaSygnalu.h"
-#include "Constants.h"
 
 #include <atomic>
 

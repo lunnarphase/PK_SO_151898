@@ -1,7 +1,2 @@
-﻿  Fryzjer.cpp
-  Klient.cpp
-  Main.cpp
-C:\Users\grzes\source\repos\PK_SO_151898\PK_SO_151898\Main.cpp(26,15): warning C4244: "argument": konwersja z "time_t" do "unsigned int", możliwa utrata danych
-  Salon.cpp
-  Generowanie kodu...
+﻿  Klient.cpp
   PK_SO_151898.vcxproj -> C:\Users\grzes\source\repos\PK_SO_151898\x64\Debug\PK_SO_151898.exe

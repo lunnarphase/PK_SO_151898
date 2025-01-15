@@ -1,75 +1,102 @@
 #include "Fryzjer.h"
 #include "Salon.h"
 #include "Kasa.h"
+#include <unistd.h>
+#include <cstdio>
 
 using namespace std;
 
 extern Salon salon;
 extern Kasa kasa;
-extern atomic<bool> sygnal1;
-extern atomic<bool> salonOtwarty;
+extern volatile sig_atomic_t sygnal1;
+extern bool salonOtwarty;
 
 Fryzjer::Fryzjer(int id) : id(id) {}
 
-void Fryzjer::start() { th = std::thread(&Fryzjer::dzialaj, this); }
+void Fryzjer::start() {
+    int ret = pthread_create(&th, nullptr, &Fryzjer::dzialaj, this);
+    if (ret != 0) {
+        perror("Nie udalo sie utworzyc watku fryzjera");
+    }
+}
 
-void Fryzjer::dzialaj()
-{
-    while (true)
-    {
+void* Fryzjer::dzialaj(void* arg) {
+    Fryzjer* self = static_cast<Fryzjer*>(arg);
+
+    while (true) {
         if (sygnal1 || !salonOtwarty) { // sprawdzenie czy salon jest otwarty
-            cout << "Fryzjer " << id << " konczy prace." << endl;
+            cout << "Fryzjer " << self->id << " konczy prace." << endl;
             break;
+        }
+
+        // Blokujemy muteks poczekalni
+        if (pthread_mutex_lock(&salon.mtxPoczekalnia) != 0) {
+            perror("Blad przy zablokowaniu mtxPoczekalnia");
+            continue;
+        }
+
+        while (salon.kolejkaKlientow.empty()) {
+            cout << "Fryzjer " << self->id << " czeka na klienta." << endl;
+
+            if (sygnal1) {
+                pthread_mutex_unlock(&salon.mtxPoczekalnia);
+                break;
+            }
+
+            // Czekamy na klienta
+            pthread_cond_wait(&salon.cvPoczekalnia, &salon.mtxPoczekalnia);
         }
 
         if (sygnal1) {
-            // fryzjer konczy prac?
-            cout << "Fryzjer " << id << " konczy prace." << endl;
+            pthread_mutex_unlock(&salon.mtxPoczekalnia);
             break;
         }
 
-        // pobierz klienta z poczekalni
-
-        unique_lock<mutex> lockPoczekalnia(salon.mtxPoczekalnia);
-
-        while (salon.kolejkaKlientow.empty()) {
-            cout << "Fryzjer " << id << " czeka na klienta." << endl;
-            salon.cvPoczekalnia.wait(lockPoczekalnia);
-            if (sygnal1) break;
-        }
-        if (sygnal1) break;
-
         int klientId = salon.kolejkaKlientow.front();
         salon.kolejkaKlientow.pop();
-        lockPoczekalnia.unlock();
+        if (pthread_mutex_unlock(&salon.mtxPoczekalnia) != 0) {
+            perror("Blad przy odblokowaniu mtxPoczekalnia");
+        }
 
-        // znajdz wolny fotel
-        unique_lock<mutex> lockFotele(salon.mtxFotele);
+        // Znajdujemy wolny fotel
+        if (pthread_mutex_lock(&salon.mtxFotele) != 0) {
+            perror("Blad przy zablokowaniu mtxFotele");
+            continue;
+        }
 
         if (salon.wolneFotele > 0) {
             salon.wolneFotele--;
-            cout << "Fryzjer " << id << " obsluguje klienta " << klientId << "." << endl;
+            cout << "Fryzjer " << self->id << " obsluguje klienta " << klientId << "." << endl;
         }
         else {
-            cout << " -> Brak wolnych foteli !" << endl;
+            cout << " -> Brak wolnych foteli!" << endl;
+            pthread_mutex_unlock(&salon.mtxFotele);
             continue;
         }
-        lockFotele.unlock();
 
-        // symulacja pobierania op?aty i umieszczania w kasie
+        if (pthread_mutex_unlock(&salon.mtxFotele) != 0) {
+            perror("Blad przy odblokowaniu mtxFotele");
+        }
+
+        // Symulacja pobierania oplaty i umieszczania w kasie
         int oplata = 50;
         int banknotKlienta = 50;
         kasa.dodajBanknot(banknotKlienta);
 
-        // realizacja uslugi
-        this_thread::sleep_for(chrono::seconds(2));
+        // Realizacja uslugi
+        sleep(2);
 
-        // zwolnienie fotela
-        lockFotele.lock();
+        // Zwolnienie fotela
+        if (pthread_mutex_lock(&salon.mtxFotele) != 0) {
+            perror("Blad przy zablokowaniu mtxFotele");
+            continue;
+        }
         salon.wolneFotele++;
-        lockFotele.unlock();
+        if (pthread_mutex_unlock(&salon.mtxFotele) != 0) {
+            perror("Blad przy odblokowaniu mtxFotele");
+        }
 
-        // wyliczenie reszty i pobieranie z kasy
+        // Wyliczenie reszty i pobieranie z kasy
         int reszta = banknotKlienta - oplata;
         int wydane10 = 0, wydane20 = 0, wydane50 = 0;
 
@@ -77,23 +104,25 @@ void Fryzjer::dzialaj()
             bool resztaWydana = kasa.wydajReszte(reszta, wydane10, wydane20, wydane50);
 
             if (resztaWydana) {
-                cout << "Fryzjer " << id << " wydaje reszte klientowi " << klientId << "." << endl;
+                cout << "Fryzjer " << self->id << " wydaje reszte klientowi " << klientId << "." << endl;
             }
             else {
-                // nie powinno sie zdarzyc
+                cout << "Wystapil blad w trakcie wydawania reszty" << endl;
             }
         }
 
-        // przekaz reszte klientowi (symulacja)
+        // Tutaj powinna nastapic komunikacja z klientem o zakonczeniu uslugi i wydaniu reszty (do zaimplementowania)
 
         if (sygnal1) {
-            cout << "Fryzjer " << id << " konczy prace po obsludze klienta." << endl;
+            cout << "Fryzjer " << self->id << " konczy prace po obsludze klienta." << endl;
             break;
         }
 
         if (!salonOtwarty) {
-            cout << "Fryzjer " << id << " konczy prace." << endl;
+            cout << "Fryzjer " << self->id << " konczy prace." << endl;
             break;
         }
     }
+
+    return nullptr;
 }

@@ -1,23 +1,24 @@
 #pragma once
 
 #include <queue>
-#include <mutex>
+#include <pthread.h>
 
 using namespace std;
 
 class Salon {
 public:
-	int wolneFotele;
-	int pojemnoscPoczekalni;
+    int wolneFotele;
+    int pojemnoscPoczekalni;
 
-	queue<int> kolejkaKlientow; // kolejka klientow w poczekalni
+    queue<int> kolejkaKlientow; // kolejka klientow w poczekalni
 
-	mutex mtxPoczekalnia; // muteks do synchronizacji poczekalni
-	mutex mtxFotele; // muteks do synchronizacji dostepu do foteli
+    pthread_mutex_t mtxPoczekalnia; // muteks do synchronizacji poczekalni
+    pthread_mutex_t mtxFotele;      // muteks do synchronizacji dostepu do foteli
 
-	condition_variable cvPoczekalnia; // zmienna warunkowa dla fryzjerow czekajacych na klientow
+    pthread_cond_t cvPoczekalnia;   // zmienna warunkowa dla fryzjerow czekajacych na klientow
 
-	Salon(int nFotele, int kPoczekalnia);
+    Salon(int nFotele, int kPoczekalnia);
+    ~Salon(); // destruktor do zwalniania zasobow
 
-	Salon& operator=(const Salon& other);
+    Salon& operator=(const Salon& other);
 };

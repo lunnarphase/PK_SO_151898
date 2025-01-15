@@ -1,12 +1,23 @@
 #include "Kasa.h"
+#include <cstdio>
+#include <cerrno>
 
 Kasa::Kasa(int b10, int b20, int b50)
     : banknoty10(b10), banknoty20(b20), banknoty50(b50) {
+    if (pthread_mutex_init(&mtxKasa, nullptr) != 0) {
+        perror("Blad inicjalizacji mtxKasa");
+    }
+    if (pthread_cond_init(&cvReszta, nullptr) != 0) {
+        perror("Blad inicjalizacji cvReszta");
+    }
 }
 
 void Kasa::dodajBanknot(int nominal) {
 
-    lock_guard<mutex> lock(mtxKasa); // blokada muteksa, break - zwolnienie
+    if (pthread_mutex_lock(&mtxKasa) != 0) {
+        perror("Blad przy zablokowaniu mtxKasa");
+        return;
+    }
 
     switch (nominal)
     {
@@ -22,12 +33,19 @@ void Kasa::dodajBanknot(int nominal) {
     default:
         break;
     }
-    cvReszta.notify_all(); // powiadom fryzjerow oczekujacych na reszte
+    pthread_cond_broadcast(&cvReszta); // powiadom fryzjerow oczekujacych na reszte
+
+    if (pthread_mutex_unlock(&mtxKasa) != 0) {
+        perror("Blad przy odblokowaniu mtxKasa");
+    }
 }
 
 bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
 {
-    unique_lock<mutex> lock(mtxKasa); // blokada muteksa
+    if (pthread_mutex_lock(&mtxKasa) != 0) {
+        perror("Blad przy zablokowaniu mtxKasa");
+        return false;
+    }
 
     while (true)
     {
@@ -60,11 +78,12 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
             banknoty10 = temp10;
             banknoty20 = temp20;
             banknoty50 = temp50;
+            pthread_mutex_unlock(&mtxKasa);
             return true;
         }
         else {
             // nie wydawaj reszty, czekaj na wplate nowych banknotow
-            cvReszta.wait(lock);
+            pthread_cond_wait(&cvReszta, &mtxKasa);
         }
     }
 }

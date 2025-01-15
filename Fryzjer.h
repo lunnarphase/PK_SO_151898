@@ -1,6 +1,6 @@
 #pragma once
 
-#include <thread>
+#include <pthread.h>
 #include <iostream>
 
 using namespace std;
@@ -8,10 +8,10 @@ using namespace std;
 class Fryzjer {
 public:
     int id;
-    std::thread th;
+    pthread_t th;
 
     Fryzjer(int id);
 
     void start();
-    void dzialaj();
+    static void* dzialaj(void* arg);
 };

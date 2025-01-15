@@ -1,6 +1,6 @@
 #pragma once
 
-#include <thread>
+#include <pthread.h>
 #include <iostream>
 #include <cerrno>
 
@@ -9,10 +9,10 @@ using namespace std;
 class Klient {
 public:
     int id;
-    std::thread th;
+    pthread_t th;
 
     Klient(int id);
 
     void start();
-    void dzialaj() const;
+    static void* dzialaj(void* arg);
 };

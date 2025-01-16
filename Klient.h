@@ -1,18 +1,26 @@
+
+// Klient.h
+
 #pragma once
 
 #include <pthread.h>
-#include <iostream>
-#include <cerrno>
+#include <csignal> 
 
-using namespace std;
+#include "Salon.h"
+#include "Kasa.h"
 
 class Klient {
 public:
     int id;
-    pthread_t th;
+    Salon* salonPtr;
+    Kasa* kasaPtr;
 
-    Klient(int id);
+    pthread_t th; // Obsluga watku
+
+    Klient(int id, Salon* salonPtr, Kasa* kasaPtr);
 
     void start();
-    static void* dzialaj(void* arg);
+    void* dzialaj();
+
+    static void* startThread(void* arg);
 };

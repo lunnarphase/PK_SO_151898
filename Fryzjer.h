@@ -1,17 +1,26 @@
+
+// Fryzjer.h
+
 #pragma once
 
 #include <pthread.h>
-#include <iostream>
+#include <csignal>
 
-using namespace std;
+#include "Salon.h"
+#include "Kasa.h"
 
 class Fryzjer {
 public:
     int id;
-    pthread_t th;
+    Salon* salonPtr;
+    Kasa* kasaPtr;
 
-    Fryzjer(int id);
+    pthread_t th;  // Obsluga sygnalu
+
+    Fryzjer(int id, Salon* salonPtr, Kasa* kasaPtr);
 
     void start();
-    static void* dzialaj(void* arg);
+    void* dzialaj();
+
+    static void* startThread(void* arg);
 };

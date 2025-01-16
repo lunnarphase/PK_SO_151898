@@ -1,24 +1,46 @@
+
+// Salon.h
+
 #pragma once
 
 #include <queue>
 #include <pthread.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
 
 using namespace std;
 
 class Salon {
 public:
-    int wolneFotele;
+    int* wolneFotele;
+    int* poczekalniaKlienci; // Wskaznik do pamieci wspoldzielonej reprezentujacej klientow w poczekalni
+
+    int shmidFotele;
+    int shmidPoczekalnia;
+    key_t shmkeyFotele;
+    key_t shmkeyPoczekalnia;
+
+    int semidFotele;
+    int semidPoczekalnia;
+    key_t semkeyFotele;
+    key_t semkeyPoczekalnia;
+
     int pojemnoscPoczekalni;
 
-    queue<int> kolejkaKlientow; // kolejka klientow w poczekalni
+    pthread_mutex_t mtxPoczekalnia;
+    pthread_mutex_t mtxFotele;
+    pthread_cond_t  cvPoczekalnia;
 
-    pthread_mutex_t mtxPoczekalnia; // muteks do synchronizacji poczekalni
-    pthread_mutex_t mtxFotele;      // muteks do synchronizacji dostepu do foteli
-
-    pthread_cond_t cvPoczekalnia;   // zmienna warunkowa dla fryzjerow czekajacych na klientow
+    queue<int> kolejkaKlientow;
 
     Salon(int nFotele, int kPoczekalnia);
-    ~Salon(); // destruktor do zwalniania zasobow
+    ~Salon();
+
+    void initSharedMemory();
+    void initSemaphores();
+    void removeSharedMemory();
+    void removeSemaphores();
 
     Salon& operator=(const Salon& other);
 };

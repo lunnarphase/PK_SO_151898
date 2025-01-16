@@ -1,3 +1,6 @@
+
+// ObslugaSygnalu.h
+
 #pragma once
 
 #include <signal.h>

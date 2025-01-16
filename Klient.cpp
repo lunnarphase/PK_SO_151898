@@ -1,72 +1,79 @@
+
+// Klient.cpp
+
 #include "Klient.h"
-#include "Salon.h"
 #include <unistd.h>
 #include <cstdio>
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include "ObslugaSygnalu.h"
 
-extern Salon salon;
-extern volatile sig_atomic_t sygnal2;
+using namespace std;
+
 extern bool salonOtwarty;
+extern volatile sig_atomic_t sygnal2;
 
-Klient::Klient(int id)
-    : id(id) {
+struct Message {
+    long mtype;
+    int clientId;
+};
+
+const long MSG_TYPE_CLIENT_ARRIVAL = 1;
+
+Klient::Klient(int id, Salon* salonPtr, Kasa* kasaPtr)
+    : id(id), salonPtr(salonPtr), kasaPtr(kasaPtr) {
 }
 
 void Klient::start() {
-    int ret = pthread_create(&th, nullptr, &Klient::dzialaj, this);
+    int ret = pthread_create(&th, nullptr, Klient::startThread, this);
     if (ret != 0) {
-        perror("Nie udalo sie utworzyc watku klienta");
+        perror("Blad: Nie udalo sie utworzyc watku klienta");
     }
 }
 
-void* Klient::dzialaj(void* arg) {
-    Klient* self = static_cast<Klient*>(arg);
+void* Klient::startThread(void* arg) {
+    return ((Klient*)arg)->dzialaj();
+}
 
-    while (!sygnal2) {
+void* Klient::dzialaj() {
 
-        if (!salonOtwarty) {
-            cout << "Klient " << self->id << " nie moze wejsc do salonu - salon jest zamkniety." << endl;
-            break;
+    // Ustawienie obsługi sygnału
+    signal(SIGUSR2, obslugaSygnalu2);
+
+    while (!sygnal2 && salonOtwarty) {
+
+        key_t key = ftok("salon_msgqueue", 80);
+        int msgid = msgget(key, 0666 | IPC_CREAT);
+
+        if (msgid == -1) {
+            perror("Blad: msgget");
+            exit(EXIT_FAILURE);
         }
 
-        sleep(rand() % 5 + 1); // Symulacja zarabiania pieniedzy
+        // Sprawdz czy poczekalnia jest pelna
+        // Na ten moment zakladamy ze poczekalnia jest pelna
 
-        // Blokujemy muteks poczekalni
-        if (pthread_mutex_lock(&salon.mtxPoczekalnia) != 0) {
-            perror("Blad przy probie zablokowania mtxPoczekalnia");
-            continue;
+        Message msg;
+        msg.mtype = MSG_TYPE_CLIENT_ARRIVAL;
+        msg.clientId = id;
+
+        if (msgsnd(msgid, &msg, sizeof(Message) - sizeof(long), 0) == -1) {
+            perror("msgsnd");
+            exit(EXIT_FAILURE);
         }
 
-        if (salon.kolejkaKlientow.size() < salon.pojemnoscPoczekalni) {
-            salon.kolejkaKlientow.push(self->id);
-            cout << "Klient " << self->id << " czeka w poczekalni." << endl;
+        cout << "Klient " << id << " przybyl do salonu." << endl;
 
-            // Powiadamiamy fryzjera
-            if (pthread_cond_signal(&salon.cvPoczekalnia) != 0) {
-                perror("Blad przy signal cvPoczekalnia");
-            }
-        }
-        else {
-            // Brak miejsca w poczekalni
-            cout << "Klient " << self->id << " opuszcza salon z powodu braku miejsca." << endl;
-            pthread_mutex_unlock(&salon.mtxPoczekalnia);
-            continue;
-        }
-
-        // Odblokowujemy muteks poczekalni
-        if (pthread_mutex_unlock(&salon.mtxPoczekalnia) != 0) {
-            perror("Blad przy odblokowaniu mtxPoczekalnia");
-        }
-
-        // Tutaj klient powinien czeka? na obs?ug? i otrzymanie reszty (do zaimplementowania w kolejnych krokach)
+        sleep(5);
 
         if (sygnal2) {
-            cout << "Klient " << self->id << " opuszcza salon ze wzgledu na sygnal 2." << endl;
+            cout << "Klient " << id << " opuszcza salon ze wzgledu na sygnal 2." << endl;
             break;
         }
 
-        // Sprawdzamy, czy salon nie zosta? zamkni?ty podczas czekania
         if (!salonOtwarty) {
-            cout << "Klient " << self->id << " opuszcza salon." << endl;
+            cout << "Klient " << id << " opuszcza salon." << endl;
             break;
         }
     }

@@ -1,6 +1,4 @@
-
 // Salon.h
-
 #pragma once
 
 #include <queue>
@@ -8,31 +6,21 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
-
-using namespace std;
+#include "KluczeIPC.h"
 
 class Salon {
 public:
     int* wolneFotele;
-    int* poczekalniaKlienci; // Wskaznik do pamieci wspoldzielonej reprezentujacej klientow w poczekalni
+    int pojemnoscPoczekalni;
+    int liczbaFoteli;
 
     int shmidFotele;
-    int shmidPoczekalnia;
-    key_t shmkeyFotele;
-    key_t shmkeyPoczekalnia;
-
     int semidFotele;
     int semidPoczekalnia;
-    key_t semkeyFotele;
-    key_t semkeyPoczekalnia;
-
-    int pojemnoscPoczekalni;
 
     pthread_mutex_t mtxPoczekalnia;
     pthread_mutex_t mtxFotele;
     pthread_cond_t  cvPoczekalnia;
-
-    queue<int> kolejkaKlientow;
 
     Salon(int nFotele, int kPoczekalnia);
     ~Salon();

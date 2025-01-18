@@ -7,15 +7,21 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include "ObslugaSygnalu.h"
+#include "KluczeIPC.h"
 
 using namespace std;
 
 extern bool salonOtwarty;
 extern volatile sig_atomic_t sygnal1;
+extern volatile sig_atomic_t sygnal2;
 
 struct Message {
     long mtype;
     int clientId;
+    int paymentAmount;
+    int banknotes[10]; // Max 10 banknotow
+    int numBanknotes;
+    int pid; // PID klienta
 };
 
 const long MSG_TYPE_CLIENT_ARRIVAL = 1;
@@ -28,11 +34,7 @@ void Fryzjer::dzialaj() {
     signal(SIGUSR1, obslugaSygnalu1);
     signal(SIGUSR2, obslugaSygnalu2);
 
-    key_t key = ftok("./salon_msgqueue", 80);
-    if (key == -1) {
-        perror("Blad: ftok");
-        exit(EXIT_FAILURE);
-    }
+    key_t key = MSGQUEUE_KEY;
     int msgid = msgget(key, 0666 | IPC_CREAT);
 
     if (msgid == -1) {
@@ -40,40 +42,77 @@ void Fryzjer::dzialaj() {
         exit(EXIT_FAILURE);
     }
 
-    while (salonOtwarty) {
+    while (salonOtwarty && !sygnal2) {
         Message msg;
         if (msgrcv(msgid, &msg, sizeof(Message) - sizeof(long), MSG_TYPE_CLIENT_ARRIVAL, 0) == -1) {
             if (errno == EINTR) {
-                continue; // Interrupted by a signal
+                if (sygnal2 || !salonOtwarty) {
+                    cout << "Fryzjer " << id << " konczy prace (przerwano msgrcv)." << endl;
+                    break;
+                }
+                continue;
             }
             perror("Blad: msgrcv");
             continue;
         }
 
         int klientId = msg.clientId;
-        cout << "Fryzjer " << id << " obsluguje klienta " << klientId << "." << endl;
+        int payment = msg.paymentAmount;
+        int klientPid = msg.pid; // PID klienta
 
-        sleep(2);
-
-        // Obliczanie i wydawanie reszty
-        int wydane10 = 0, wydane20 = 0, wydane50 = 0;
-        int kwotaDoZwrotu = 20; // Przykładowa kwota do zwrotu
-
-        while (!kasaPtr->wydajReszte(kwotaDoZwrotu, wydane10, wydane20, wydane50)) {
-            cout << "Fryzjer " << id << " czeka, aż kasa będzie mogła wydać resztę dla klienta " << klientId << endl;
-            sleep(1);
+        // Zajmowanie fotela
+        struct sembuf sb_fotel = {0, -1, 0};
+        if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) {
+            if (errno == EINTR) {
+                if (sygnal2 || !salonOtwarty) {
+                    break;
+                }
+                continue;
+            } else {
+                perror("Blad: semop wait on fotele");
+                exit(EXIT_FAILURE);
+            }
         }
 
-        cout << "Fryzjer " << id << " wydaje reszty dla klienta " << klientId << ": " 
-             << wydane10 << " x 10zl, " << wydane20 << " x 20zl, " << wydane50 << " x 50zl" << endl;
+        cout << "Fryzjer " << id << " obsluguje klienta " << klientId << "." << endl;
+
+        // Wykonywanie usługi
+        sleep(2);
+
+        // Wydawanie reszty
+        int reszta = payment - 30;
+        while (true) {
+            int wydane10 = 0, wydane20 = 0, wydane50 = 0;
+            if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {
+                cout << "Fryzjer " << id << " wydaje reszte klientowi " << klientId << ": " << reszta << " zl." << endl;
+                break;
+            } else {
+                cout << "Fryzjer " << id << " czeka na srodki w kasie, aby wydac reszte klientowi " << klientId << "." << endl;
+                sleep(1);
+            }
+        }
+
+        // Wysłanie wiadomości do klienta o zakończeniu usługi
+        Message responseMsg;
+        responseMsg.mtype = klientPid; // Używamy PID klienta jako typ wiadomości
+        responseMsg.clientId = klientId;
+        responseMsg.paymentAmount = reszta; // Kwota reszty
+        responseMsg.pid = getpid(); // PID fryzjera
+
+        if (msgsnd(msgid, &responseMsg, sizeof(Message) - sizeof(long), 0) == -1) {
+            perror("Blad: msgsnd do klienta");
+            exit(EXIT_FAILURE);
+        }
+
+        // Zwalnianie fotela
+        struct sembuf sb_fotel_release = {0, 1, 0};
+        if (semop(salonPtr->semidFotele, &sb_fotel_release, 1) == -1) {
+            perror("Blad: semop signal on fotele");
+            exit(EXIT_FAILURE);
+        }
 
         if (sygnal1) {
             cout << "\nOdebrano sygnal 1. Fryzjer " << id << " konczy prace." << endl;
-            break;
-        }
-
-        if (!salonOtwarty) {
-            cout << "Fryzjer " << id << " konczy prace." << endl;
             break;
         }
     }

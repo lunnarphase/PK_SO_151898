@@ -11,7 +11,7 @@
 #include <sys/sem.h>
 
 Salon::Salon(int nFotele, int kPoczekalnia)
-    : pojemnoscPoczekalni(kPoczekalnia) {
+    : pojemnoscPoczekalni(kPoczekalnia), liczbaFoteli(nFotele) {
 
     wolneFotele = new int;
     *wolneFotele = nFotele;
@@ -28,21 +28,16 @@ Salon::Salon(int nFotele, int kPoczekalnia)
 }
 
 Salon::~Salon() {
+    // Destruktor - usuwamy alokowaną pamięć i niszczymy muteksy
+    delete wolneFotele;
+
     pthread_mutex_destroy(&mtxPoczekalnia);
     pthread_mutex_destroy(&mtxFotele);
     pthread_cond_destroy(&cvPoczekalnia);
-
-    delete wolneFotele;
 }
 
 void Salon::initSharedMemory() {
-    shmkeyFotele = ftok("./salon_shmkey_fotele", 80); // Generacja unikalnego klucza
-    if (shmkeyFotele == -1) {
-        perror("Blad: ftok");
-        exit(EXIT_FAILURE);
-    }
-
-    shmidFotele = shmget(shmkeyFotele, sizeof(int), 0666 | IPC_CREAT);
+    shmidFotele = shmget(SHMKEY_FOTELE, sizeof(int), 0666 | IPC_CREAT);
     if (shmidFotele == -1) {
         perror("Blad: shmget");
         exit(EXIT_FAILURE);
@@ -54,43 +49,27 @@ void Salon::initSharedMemory() {
         exit(EXIT_FAILURE);
     }
 
-    *wolneFotele = *wolneFotele;
+    *wolneFotele = liczbaFoteli;
 }
 
 void Salon::initSemaphores() {
-    // Initialize semaphore for chairs
-    semkeyFotele = ftok("./salon_semkey_fotele", 81);
-    if (semkeyFotele == -1) {
-        perror("Blad: ftok for semkeyFotele");
-        exit(EXIT_FAILURE);
-    }
-
-    semidFotele = semget(semkeyFotele, 1, 0666 | IPC_CREAT);
+    semidFotele = semget(SEMKEY_FOTELE, 1, 0666 | IPC_CREAT);
     if (semidFotele == -1) {
         perror("Blad: semget for semidFotele");
         exit(EXIT_FAILURE);
     }
 
-    // Initialize semaphore value to the number of chairs
-    if (semctl(semidFotele, 0, SETVAL, *wolneFotele) == -1) {
+    if (semctl(semidFotele, 0, SETVAL, liczbaFoteli) == -1) {
         perror("Blad: semctl SETVAL for semidFotele");
         exit(EXIT_FAILURE);
     }
 
-    // Similarly initialize semaphore for the waiting room
-    semkeyPoczekalnia = ftok("./salon_semkey_poczekalnia", 82);
-    if (semkeyPoczekalnia == -1) {
-        perror("Blad: ftok for semkeyPoczekalnia");
-        exit(EXIT_FAILURE);
-    }
-
-    semidPoczekalnia = semget(semkeyPoczekalnia, 1, 0666 | IPC_CREAT);
+    semidPoczekalnia = semget(SEMKEY_POCZEKALNIA, 1, 0666 | IPC_CREAT);
     if (semidPoczekalnia == -1) {
         perror("Blad: semget for semidPoczekalnia");
         exit(EXIT_FAILURE);
     }
 
-    // Initialize semaphore value to the capacity of the waiting room
     if (semctl(semidPoczekalnia, 0, SETVAL, pojemnoscPoczekalni) == -1) {
         perror("Blad: semctl SETVAL for semidPoczekalnia");
         exit(EXIT_FAILURE);
@@ -108,7 +87,13 @@ void Salon::removeSharedMemory() {
 }
 
 void Salon::removeSemaphores() {
-    // Mozliwa implementacja w przyszlosci - usuniecie semaforow
+    if (semctl(semidFotele, 0, IPC_RMID) == -1) {
+        perror("Blad: semctl IPC_RMID semidFotele");
+    }
+
+    if (semctl(semidPoczekalnia, 0, IPC_RMID) == -1) {
+        perror("Blad: semctl IPC_RMID semidPoczekalnia");
+    }
 }
 
 Salon& Salon::operator=(const Salon& other) {
@@ -121,9 +106,9 @@ Salon& Salon::operator=(const Salon& other) {
     wolneFotele = new int;
     *wolneFotele = *other.wolneFotele;
     pojemnoscPoczekalni = other.pojemnoscPoczekalni;
-    kolejkaKlientow = other.kolejkaKlientow;
+    liczbaFoteli = other.liczbaFoteli;
 
-    // Reinicjalizacja muteksow i zmiennych warunkowych
+    // Reinicjalizacja muteksów i zmiennych warunkowych
     pthread_mutex_destroy(&mtxPoczekalnia);
     pthread_mutex_destroy(&mtxFotele);
     pthread_cond_destroy(&cvPoczekalnia);

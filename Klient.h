@@ -1,4 +1,5 @@
 // Klient.h
+
 #pragma once
 
 #include <csignal>
@@ -8,6 +9,7 @@
 class Klient {
 public:
     int id;
+    int money; // Aktualna ilość pieniędzy klienta
     Salon* salonPtr;
     Kasa* kasaPtr;
 

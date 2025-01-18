@@ -139,7 +139,7 @@ int main()
         perror("Blad: Nie udalo sie dolaczyc watku czasu !!!");
     }
 
-    cout << "\n=#= Salon zakonczyl prace =#=" << endl;
+    cout << "\n=#= Salon zakonczyl prace =#=\n" << endl;
 
     // Wyczysc wspoldzielone zasoby
     kasa.removeSharedMemory();

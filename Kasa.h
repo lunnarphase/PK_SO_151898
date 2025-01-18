@@ -7,6 +7,8 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 
+#include "KluczeIPC.h"
+
 class Kasa {
 public:
     int* banknoty10;

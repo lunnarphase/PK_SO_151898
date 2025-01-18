@@ -1,17 +1,15 @@
-// Main.cpp
+// #include <cstdlib>
+// #include <sys/ipc.h>
+// #include <sys/types.h>
+// #include <unistd.h>
 
 #include <iostream>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <csignal>
-#include <cstdlib>
 #include <cerrno>
 #include <ctime>
 #include <limits>
-#include <pthread.h>
 #include <vector>
-#include <sys/ipc.h>
+#include <sys/wait.h>
 
 #include "Salon.h"
 #include "Kasa.h"
@@ -44,38 +42,18 @@ int main()
 {
     srand(time(nullptr));
 
-    cout << "Uruchamianie programu ..." << endl; // Debug
+    cout << "\n## Uruchamianie programu ... ##\n" << endl; // Debug
+    sleep(2);
 
     pobierzKonfiguracje();
 
-    cout << "\nKonfiguracja ukonczona." << endl; // Debug
+    cout << "\n## Konfiguracja ukonczona pomyslnie ##" << endl; // Debug
+    sleep(2);
 
-    FILE *fp;
-
-    const char* ftok_files[] = {
-        "./salon_msgqueue",
-        "./salon_semkey_fotele",
-        "./salon_semkey_poczekalnia",
-        "./salon_shmkey_fotele",
-        "./kasa_shmkey",
-        "./kasa_semkey"
-    };
-
-    for (const char* filename : ftok_files) {
-        fp = fopen(filename, "w");
-        if (fp == NULL) {
-            perror("Blad: Nie udalo sie utworzyc pliku dla ftok");
-            exit(EXIT_FAILURE);
-        }
-        fclose(fp);
-    }
-
-    // Inicjalizacja salon
-    salon = Salon(N, K);
+    salon = Salon(N, K); // Inicjalizacja salon
 
     kasa.initSharedMemory();
     kasa.initSemaphore();
-
     salon.initSharedMemory();
     salon.initSemaphores();
 
@@ -89,27 +67,31 @@ int main()
             perror("Blad: Wystapil blad przy tworzeniu procesow fryzjerow");
             exit(EXIT_FAILURE);
         }
-        if (pid == 0) {
-            // Proces potomny - Fryzjer
+        if (pid == 0) { // Proces potomny - Fryzjer
             Fryzjer fryzjer(i, &salon, &kasa);
             fryzjer.dzialaj();
             exit(0);
-        } else {
-            // Proces rodzic - zapisz PID fryzjera
-            barberPIDs.push_back(pid);
+        } else { 
+            barberPIDs.push_back(pid); // Proces rodzic - zapisz PID fryzjera
         }
     }
 
     cout << "\n## Fryzjerzy utworzeni ##" << endl;
+    sleep(2);
 
-    // Rozpocznij symulacje czasu w osobnym watku
+    cout << "\n#==============================================#" << endl;
+    cout << "\tSalon fryzjerski zostal otwarty. \n\tGodziny otwarcia: " << Tp << ":00 - " << Tk << ":00";
+    cout << "\n#==============================================#" << endl;
+    sleep(2);
+
+    // Rozpoczecie symulacji czasu w osobnym watku
     pthread_t czasThread;
     int ret = pthread_create(&czasThread, nullptr, symulujCzas, nullptr);
     if (ret != 0) {
         perror("Blad: Nie udalo sie utworzyc watku czasu !!!");
     }
 
-    cout << "\n### Symulacja czasu uruchomiona ###" << endl;
+    sleep(2);
 
     // Tworzenie procesow klientow
     for (int i = 1; i <= LICZBA_KLIENTOW; ++i) {
@@ -118,14 +100,12 @@ int main()
             perror("Blad: Nie udalo sie utworzyc procesu klienta");
             exit(EXIT_FAILURE);
         }
-        if (pid == 0) {
-            // Proces potomny - Klient
+        if (pid == 0) { // Proces potomny - Klient
             Klient klient(i, &salon, &kasa);
             klient.dzialaj();
             exit(0);
         } else {
-            // Proces rodzic - zapisz PID klienta
-            clientPIDs.push_back(pid);
+            clientPIDs.push_back(pid); // Proces rodzic - zapisz PID klienta
         }
         sleep(rand() % 3 + 1);  // Losowy czas miedzy przyjsciem klientow
     }
@@ -154,42 +134,42 @@ void pobierzKonfiguracje()
 {
     cout << "Wprowadz liczbe fryzjerow (F > 1): ";
     while (!(cin >> F) || F <= 1) {
-        cout << "Niepoprawna wartosc. Liczba fryzjerow musi byc wieksza niz 1. Sprobuj ponownie: ";
+        cout << "\nLiczba fryzjerow musi byc wieksza niz 1. Sprobuj ponownie: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Include <limits>
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
     cout << "Wprowadz liczbe foteli w salonie (N < F): ";
     while (!(cin >> N) || N >= F || N <= 0) {
-        cout << "Niepoprawna wartosc. Liczba foteli musi byc mniejsza niż liczba fryzjerow i wieksza od 0. Sprobuj ponownie: ";
+        cout << "\nLiczba foteli musi byc mniejsza niż liczba fryzjerow i wieksza od 0. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
     cout << "Wprowadz pojemnosc poczekalni dla klientow (K >= 0): ";
     while (!(cin >> K) || K < 0) {
-        cout << "Niepoprawna wartosc. Pojemnosc poczekalni nie moze byc ujemna. Sprobuj ponownie: ";
+        cout << "\nPojemnosc poczekalni nie moze byc ujemna. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
     cout << "Wprowadz poczatkowa liczbe klientow (>= 0): ";
     while (!(cin >> LICZBA_KLIENTOW) || LICZBA_KLIENTOW < 0) {
-        cout << "Niepoprawna wartosc. Liczba klientow nie moze byc ujemna. Sprobuj ponownie: ";
+        cout << "\nLiczba klientow nie moze byc ujemna. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
     cout << "Wprowadz godzine otwarcia salonu (0 - 23): ";
     while (!(cin >> Tp) || Tp < 0 || Tp > 23) {
-        cout << "Niepoprawna wartosc. Godzina otwarcia musi byc w przedziale 0 - 23. Sprobuj ponownie: ";
+        cout << "\nGodzina otwarcia musi byc w przedziale 0 - 23. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
     cout << "Wprowadz godzine zamkniecia salonu (0 - 24, wieksza od godziny otwarcia): ";
     while (!(cin >> Tk) || Tk <= Tp || Tk > 24) {
-        cout << "Niepoprawna wartosc. Godzina zamkniecia musi byc wieksza od godziny otwarcia i w przedziale 1 - 24. Sprobuj ponownie: ";
+        cout << "\nGodzina zamkniecia musi byc wieksza od godziny otwarcia i w przedziale 1 - 24. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -200,14 +180,17 @@ void* symulujCzas(void* arg) {
 
     while (aktualnaGodzina < Tk) 
     {
-        cout << "\n|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\n" << endl;
-        sleep(5);   // 5 sekund odpowiada 1 godzinie w salonie
 
+        cout << "\n|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\n" << endl;
+        sleep(1);
+
+        sleep(10);   // odpowiada 1 godzinie w salonie
         aktualnaGodzina++;
 
         if (aktualnaGodzina >= Tk) {
             cout << "\n!!! Salon wlasnie zostal zamkniety !!!\n" << endl;
-            salonOtwarty = false;   // Flaga informujaca, ze salon jest zamkniety
+            salonOtwarty = false;
+            sleep(2);
 
             // Wyslij sygnał 2 do wszystkich procesow klientow
             for (pid_t pid : clientPIDs) {
@@ -217,7 +200,6 @@ void* symulujCzas(void* arg) {
             for (pid_t pid : barberPIDs) {
                 kill(pid, SIGUSR2);
             }
-
             break;
         }
     }

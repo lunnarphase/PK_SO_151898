@@ -1,6 +1,3 @@
-
-// Kasa.h
-
 #pragma once
 
 #include <sys/ipc.h>

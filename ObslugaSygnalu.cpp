@@ -1,6 +1,3 @@
-
-// ObslugaSygnalu.cpp
-
 #include "ObslugaSygnalu.h"
 #include <iostream>
 

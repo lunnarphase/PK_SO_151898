@@ -1,4 +1,3 @@
-// Fryzjer.h
 #pragma once
 
 #include <csignal>

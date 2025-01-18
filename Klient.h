@@ -1,5 +1,3 @@
-// Klient.h
-
 #pragma once
 
 #include <csignal>

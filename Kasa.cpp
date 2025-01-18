@@ -1,6 +1,3 @@
-
-// Kasa.cpp
-
 #include "Kasa.h"
 #include <cstdio>
 #include <cerrno>
@@ -15,7 +12,7 @@ Kasa::Kasa() {
 Kasa::~Kasa() {}
 
 void Kasa::initSharedMemory() {
-    shmid = shmget(SHMKEY_KASA, 3 * sizeof(int), 0666 | IPC_CREAT);
+    shmid = shmget(SHMKEY_KASA, 3 * sizeof(int), 0600 | IPC_CREAT);
     if (shmid == -1) {
         perror("Blad: shmget");
         exit(EXIT_FAILURE);
@@ -48,7 +45,7 @@ void Kasa::removeSharedMemory() {
 }
 
 void Kasa::initSemaphore() {
-    semid = semget(SEMKEY_KASA, 1, 0666 | IPC_CREAT);
+    semid = semget(SEMKEY_KASA, 1, 0600 | IPC_CREAT);
     if (semid == -1) {
         perror("Blad: semget");
         exit(EXIT_FAILURE);
@@ -68,7 +65,7 @@ void Kasa::removeSemaphore() {
 }
 
 void Kasa::dodajBanknot(int nominal) {
-    // Semaphore wait (P operation)
+    // Semapfor (operacja P)
     struct sembuf sem_op;
     sem_op.sem_num = 0;
     sem_op.sem_op = -1;  // Czekaj
@@ -152,8 +149,7 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50) 
         }
         return true;
     } else {
-        // Nie mozna wydac reszty, klient musi zaczekac
-        // Semafor (V operation)
+        // Nie mozna wydac reszty, klient musi zaczekac - Semafor (operacja V)
         sem_op.sem_op = 1;  // Sygnal
         if (semop(semid, &sem_op, 1) == -1) {
             perror("Blad: Wystapil blad uzycia sygnalu semop");

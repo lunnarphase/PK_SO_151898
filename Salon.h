@@ -1,4 +1,3 @@
-// Salon.h
 #pragma once
 
 #include <queue>

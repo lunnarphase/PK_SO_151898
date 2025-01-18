@@ -1,11 +1,10 @@
-// Fryzjer.cpp
-
-#include "Fryzjer.h"
 #include <unistd.h>
 #include <cstdio>
 #include <iostream>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+
+#include "Fryzjer.h"
 #include "ObslugaSygnalu.h"
 #include "KluczeIPC.h"
 
@@ -35,7 +34,7 @@ void Fryzjer::dzialaj() {
     signal(SIGUSR2, obslugaSygnalu2);
 
     key_t key = MSGQUEUE_KEY;
-    int msgid = msgget(key, 0666 | IPC_CREAT);
+    int msgid = msgget(key, 0600 | IPC_CREAT);
 
     if (msgid == -1) {
         perror("Blad: msgget");
@@ -47,7 +46,8 @@ void Fryzjer::dzialaj() {
         if (msgrcv(msgid, &msg, sizeof(Message) - sizeof(long), MSG_TYPE_CLIENT_ARRIVAL, 0) == -1) {
             if (errno == EINTR) {
                 if (sygnal2 || !salonOtwarty) {
-                    cout << "Fryzjer " << id << " konczy prace (przerwano msgrcv)." << endl;
+                    cout << "Fryzjer " << id << " konczy prace." << endl;
+                    sleep(1);
                     break;
                 }
                 continue;
@@ -69,25 +69,25 @@ void Fryzjer::dzialaj() {
                 }
                 continue;
             } else {
-                perror("Blad: semop wait on fotele");
+                perror("Blad: semop - zajmowanie fotela");
                 exit(EXIT_FAILURE);
             }
         }
 
         cout << "Fryzjer " << id << " obsluguje klienta " << klientId << "." << endl;
-
-        // Wykonywanie usługi
-        sleep(2);
+        sleep(2); // Wykonywanie usługi
 
         // Wydawanie reszty
         int reszta = payment - 30;
         while (true) {
             int wydane10 = 0, wydane20 = 0, wydane50 = 0;
             if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {
-                cout << "Fryzjer " << id << " wydaje reszte klientowi " << klientId << ": " << reszta << " zl." << endl;
+                cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl"
+                     << " - [$10 x" << wydane10 << ", " << "$20 x" << wydane20 << ", " << "$50 x" << wydane50 << " ]" << endl;
+                sleep(1);
                 break;
             } else {
-                cout << "Fryzjer " << id << " czeka na srodki w kasie, aby wydac reszte klientowi " << klientId << "." << endl;
+                cout << "Fryzjer " << id << " czeka na srodki w kasie, aby wydac reszte klientowi " << klientId << endl;
                 sleep(1);
             }
         }
@@ -112,7 +112,8 @@ void Fryzjer::dzialaj() {
         }
 
         if (sygnal1) {
-            cout << "\nOdebrano sygnal 1. Fryzjer " << id << " konczy prace." << endl;
+            cout << "\nOdebrano sygnal 1. Fryzjer " << id << " konczy prace" << endl;
+            sleep(1);
             break;
         }
     }

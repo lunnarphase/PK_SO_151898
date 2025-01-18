@@ -1,5 +1,3 @@
-// Klient.cpp
-
 #include <vector>
 #include <unistd.h>
 #include <cstdio>
@@ -38,8 +36,8 @@ void Klient::dzialaj() {
     while (!sygnal2 && salonOtwarty) {
 
         // Klient zarabia pieniądze, aż uzbiera co najmniej 30 zł
-        while (money < 30) {
-            cout << "Klient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl." << endl;
+        while (money <= 50) {
+            cout << "Klient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl" << endl;
             sleep(1); // Symulacja godziny pracy
             money += 10;
             if (sygnal2 || !salonOtwarty) {
@@ -51,7 +49,7 @@ void Klient::dzialaj() {
         }
 
         key_t key = MSGQUEUE_KEY;
-        int msgid = msgget(key, 0666 | IPC_CREAT);
+        int msgid = msgget(key, 0600 | IPC_CREAT);
 
         if (msgid == -1) {
             perror("Blad: msgget");
@@ -63,9 +61,8 @@ void Klient::dzialaj() {
 
         if (semop(salonPtr->semidPoczekalnia, &sb, 1) == -1) {
             if (errno == EAGAIN) {
-                cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni. Wraca do zarabiania pieniedzy." << endl;
-                // Cooldown
                 int cooldown = rand() % 8 + 3; // Losowy czas pracy od 3 do 10 sekund
+                cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni. Sproboje ponownie za " << cooldown << " sekund" << endl;
                 sleep(cooldown);
                 continue;
             } else {
@@ -110,7 +107,8 @@ void Klient::dzialaj() {
             exit(EXIT_FAILURE);
         }
 
-        cout << "Klient " << id << " przybyl do salonu i placi " << payment << " zl." << endl;
+        cout << "Klient " << id << " przybyl do salonu i zaplacil " << payment << " zl" << endl;
+        sleep(1);
 
         // Dodanie banknotów do kasy
         for (int banknote : banknotes) {
@@ -132,6 +130,8 @@ void Klient::dzialaj() {
 
         int reszta = responseMsg.paymentAmount;
         cout << "Klient " << id << " otrzymal reszte: " << reszta << " zl." << endl;
+        sleep(1);
+
         money += reszta;
 
         // Zwolnienie miejsca w poczekalni
@@ -141,7 +141,8 @@ void Klient::dzialaj() {
             exit(EXIT_FAILURE);
         }
 
-        cout << "Klient " << id << " opuszcza salon." << endl;
+        cout << "Klient " << id << " opuszcza salon i wraca do zarabiania pieniedzy." << endl;
+        sleep(1);
 
         // Klient wraca do zarabiania pieniędzy przed kolejną wizytą
     }

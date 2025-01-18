@@ -1,7 +1,5 @@
-
-// Salon.cpp
-
 #include "Salon.h"
+
 #include <cstring>
 #include <cerrno>
 #include <cstdio>
@@ -37,7 +35,7 @@ Salon::~Salon() {
 }
 
 void Salon::initSharedMemory() {
-    shmidFotele = shmget(SHMKEY_FOTELE, sizeof(int), 0666 | IPC_CREAT);
+    shmidFotele = shmget(SHMKEY_FOTELE, sizeof(int), 0600 | IPC_CREAT);
     if (shmidFotele == -1) {
         perror("Blad: shmget");
         exit(EXIT_FAILURE);
@@ -53,7 +51,7 @@ void Salon::initSharedMemory() {
 }
 
 void Salon::initSemaphores() {
-    semidFotele = semget(SEMKEY_FOTELE, 1, 0666 | IPC_CREAT);
+    semidFotele = semget(SEMKEY_FOTELE, 1, 0600 | IPC_CREAT);
     if (semidFotele == -1) {
         perror("Blad: semget for semidFotele");
         exit(EXIT_FAILURE);
@@ -64,7 +62,7 @@ void Salon::initSemaphores() {
         exit(EXIT_FAILURE);
     }
 
-    semidPoczekalnia = semget(SEMKEY_POCZEKALNIA, 1, 0666 | IPC_CREAT);
+    semidPoczekalnia = semget(SEMKEY_POCZEKALNIA, 1, 0600 | IPC_CREAT);
     if (semidPoczekalnia == -1) {
         perror("Blad: semget for semidPoczekalnia");
         exit(EXIT_FAILURE);

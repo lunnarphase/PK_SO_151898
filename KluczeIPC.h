@@ -1,5 +1,3 @@
-// KluczeIPC.h
-
 #pragma once
 
 const key_t MSGQUEUE_KEY = 1234;

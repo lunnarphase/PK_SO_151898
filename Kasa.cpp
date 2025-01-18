@@ -12,24 +12,26 @@ Kasa::Kasa() {
     banknoty50 = nullptr;
 }
 
-Kasa::~Kasa() {}
+Kasa::~Kasa() {
+    removeSharedMemory();
+    removeSemaphore();
+}
 
 void Kasa::initSharedMemory() {
-    shmkey = ftok("kasa_shmkey", 65); // Generacja unikatowego klucza
+    shmkey = ftok("./kasa_shmkey", 65); // Generacja unikatowego klucza
     if (shmkey == -1) {
-        perror("ftok");
+        perror("Blad: ftok");
         exit(EXIT_FAILURE);
     }
-
     shmid = shmget(shmkey, 3 * sizeof(int), 0666 | IPC_CREAT);
     if (shmid == -1) {
-        perror("shmget");
+        perror("Blad: shmget");
         exit(EXIT_FAILURE);
     }
 
     int* shared_mem = (int*)shmat(shmid, nullptr, 0);
     if (shared_mem == (void*)-1) {
-        perror("shmat");
+        perror("Blad: shmat");
         exit(EXIT_FAILURE);
     }
 
@@ -54,7 +56,7 @@ void Kasa::removeSharedMemory() {
 }
 
 void Kasa::initSemaphore() {
-    semkey = ftok("kasa_semkey", 75);
+    semkey = ftok("./kasa_semkey", 75);
     if (semkey == -1) {
         perror("Blad: ftok");
         exit(EXIT_FAILURE);

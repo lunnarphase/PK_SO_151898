@@ -1,4 +1,3 @@
-
 // Klient.cpp
 
 #include "Klient.h"
@@ -7,6 +6,7 @@
 #include <iostream>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <ctime>
 #include "ObslugaSygnalu.h"
 
 using namespace std;
@@ -25,25 +25,15 @@ Klient::Klient(int id, Salon* salonPtr, Kasa* kasaPtr)
     : id(id), salonPtr(salonPtr), kasaPtr(kasaPtr) {
 }
 
-void Klient::start() {
-    int ret = pthread_create(&th, nullptr, Klient::startThread, this);
-    if (ret != 0) {
-        perror("Blad: Nie udalo sie utworzyc watku klienta");
-    }
-}
-
-void* Klient::startThread(void* arg) {
-    return ((Klient*)arg)->dzialaj();
-}
-
-void* Klient::dzialaj() {
-
-    // Ustawienie obsługi sygnału
+void Klient::dzialaj() {
     signal(SIGUSR2, obslugaSygnalu2);
 
     while (!sygnal2 && salonOtwarty) {
-
-        key_t key = ftok("salon_msgqueue", 80);
+        key_t key = ftok("./salon_msgqueue", 80);
+        if (key == -1) {
+            perror("Blad: ftok");
+            exit(EXIT_FAILURE);
+        }
         int msgid = msgget(key, 0666 | IPC_CREAT);
 
         if (msgid == -1) {
@@ -52,14 +42,37 @@ void* Klient::dzialaj() {
         }
 
         // Sprawdz czy poczekalnia jest pelna
-        // Na ten moment zakladamy ze poczekalnia jest pelna
+        struct sembuf sb = {0, -1, IPC_NOWAIT};
 
+        if (semop(salonPtr->semidPoczekalnia, &sb, 1) == -1) {
+            if (errno == EAGAIN) {
+                cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni." << endl;
+                // Return to earning money
+                sleep(rand() % 3 + 1);
+                continue;
+            } else {
+                perror("Blad: semop wait on poczekalnia");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        // Wyslij wiadomosc do fryzjera o przybyciu
         Message msg;
         msg.mtype = MSG_TYPE_CLIENT_ARRIVAL;
         msg.clientId = id;
 
         if (msgsnd(msgid, &msg, sizeof(Message) - sizeof(long), 0) == -1) {
-            perror("msgsnd");
+            if (errno == EINTR) {
+                continue; // Interrupted by a signal
+            }
+            perror("Blad: msgsnd");
+            exit(EXIT_FAILURE);
+        }
+
+        // Po byciu obsluzonym i opuszczeniu poczekalni, zasygnalizuj semafor poczekalni 
+        sb.sem_op = 1;
+        if (semop(salonPtr->semidPoczekalnia, &sb, 1) == -1) {
+            perror("Blad: semop signal on poczekalnia");
             exit(EXIT_FAILURE);
         }
 
@@ -68,7 +81,7 @@ void* Klient::dzialaj() {
         sleep(5);
 
         if (sygnal2) {
-            cout << "Klient " << id << " opuszcza salon ze wzgledu na sygnal 2." << endl;
+            cout << "\nOdebrano sygnal 2. Klient " << id << " opuszcza salon." << endl;
             break;
         }
 
@@ -76,7 +89,8 @@ void* Klient::dzialaj() {
             cout << "Klient " << id << " opuszcza salon." << endl;
             break;
         }
-    }
 
-    return nullptr;
+        // Symulacja czasu miedzy wizytami klientow
+        sleep(rand() % 3 + 1);
+    }
 }

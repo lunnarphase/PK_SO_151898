@@ -11,7 +11,7 @@
 #include <limits>
 #include <pthread.h>
 #include <vector>
-#include <sys/ipc.h>  // uzywane do ftok
+#include <sys/ipc.h>
 
 #include "Salon.h"
 #include "Kasa.h"
@@ -52,26 +52,23 @@ int main()
 
     FILE *fp;
 
-    fp = fopen("salon_msgqueue", "w");
-    if (fp == NULL) {
-        perror("Blad: Nie udalo sie utworzyc pliku 'salon_msgqueue' dla ftok");
-        exit(EXIT_FAILURE);
-    }
-    fclose(fp);
+    const char* ftok_files[] = {
+        "./salon_msgqueue",
+        "./salon_semkey_fotele",
+        "./salon_semkey_poczekalnia",
+        "./salon_shmkey_fotele",
+        "./kasa_shmkey",
+        "./kasa_semkey"
+    };
 
-    fp = fopen("salon_shmkey_fotele", "w");
-    if (fp == NULL) {
-        perror("Blad: Nie udalo sie utworzyc pliku 'salon_shmkey_fotele' dla ftok");
-        exit(EXIT_FAILURE);
+    for (const char* filename : ftok_files) {
+        fp = fopen(filename, "w");
+        if (fp == NULL) {
+            perror("Blad: Nie udalo sie utworzyc pliku dla ftok");
+            exit(EXIT_FAILURE);
+        }
+        fclose(fp);
     }
-    fclose(fp);
-
-    fp = fopen("kasa_shmkey", "w");
-    if (fp == NULL) {
-        perror("Blad: Nie udalo sie utworzyc pliku 'kasa_shmkey' dla ftok");
-        exit(EXIT_FAILURE);
-    }
-    fclose(fp);
 
     // Inicjalizacja salon
     salon = Salon(N, K);

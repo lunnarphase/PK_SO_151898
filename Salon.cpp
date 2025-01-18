@@ -36,21 +36,21 @@ Salon::~Salon() {
 }
 
 void Salon::initSharedMemory() {
-    shmkeyFotele = ftok("salon_shmkey_fotele", 80); // Generacja unikalnego klucza
+    shmkeyFotele = ftok("./salon_shmkey_fotele", 80); // Generacja unikalnego klucza
     if (shmkeyFotele == -1) {
-        perror("ftok");
+        perror("Blad: ftok");
         exit(EXIT_FAILURE);
     }
 
     shmidFotele = shmget(shmkeyFotele, sizeof(int), 0666 | IPC_CREAT);
     if (shmidFotele == -1) {
-        perror("shmget");
+        perror("Blad: shmget");
         exit(EXIT_FAILURE);
     }
 
     wolneFotele = (int*)shmat(shmidFotele, nullptr, 0);
     if (wolneFotele == (void*)-1) {
-        perror("shmat");
+        perror("Blad: shmat");
         exit(EXIT_FAILURE);
     }
 
@@ -58,7 +58,43 @@ void Salon::initSharedMemory() {
 }
 
 void Salon::initSemaphores() {
-    // Mozliwa implementacja w przyszlosci - funckja sluzaca inicjalizacji semaforow
+    // Initialize semaphore for chairs
+    semkeyFotele = ftok("./salon_semkey_fotele", 81);
+    if (semkeyFotele == -1) {
+        perror("Blad: ftok for semkeyFotele");
+        exit(EXIT_FAILURE);
+    }
+
+    semidFotele = semget(semkeyFotele, 1, 0666 | IPC_CREAT);
+    if (semidFotele == -1) {
+        perror("Blad: semget for semidFotele");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize semaphore value to the number of chairs
+    if (semctl(semidFotele, 0, SETVAL, *wolneFotele) == -1) {
+        perror("Blad: semctl SETVAL for semidFotele");
+        exit(EXIT_FAILURE);
+    }
+
+    // Similarly initialize semaphore for the waiting room
+    semkeyPoczekalnia = ftok("./salon_semkey_poczekalnia", 82);
+    if (semkeyPoczekalnia == -1) {
+        perror("Blad: ftok for semkeyPoczekalnia");
+        exit(EXIT_FAILURE);
+    }
+
+    semidPoczekalnia = semget(semkeyPoczekalnia, 1, 0666 | IPC_CREAT);
+    if (semidPoczekalnia == -1) {
+        perror("Blad: semget for semidPoczekalnia");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize semaphore value to the capacity of the waiting room
+    if (semctl(semidPoczekalnia, 0, SETVAL, pojemnoscPoczekalni) == -1) {
+        perror("Blad: semctl SETVAL for semidPoczekalnia");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void Salon::removeSharedMemory() {

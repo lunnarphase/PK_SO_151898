@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <map>
 
 #include "Klient.h"
 #include "ObslugaSygnalu.h"
@@ -35,8 +36,8 @@ void Klient::dzialaj() {
 
     while (!sygnal2 && salonOtwarty) {
 
-        // Klient zarabia pieniądze, aż uzbiera co najmniej 30 zł
-        while (money <= 50) {
+        // Klient zarabia pieniądze, aż uzbiera co najmniej 50 zł
+        while (money < 50) {
             cout << "Klient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl" << endl;
             sleep(1); // Symulacja godziny pracy
             money += 10;
@@ -66,26 +67,45 @@ void Klient::dzialaj() {
                 sleep(cooldown);
                 continue;
             } else {
-                perror("Blad: semop wait on poczekalnia");
+                perror("Blad: semop - poczekalnia");
                 exit(EXIT_FAILURE);
             }
         }
 
         // Przygotowanie płatności
-        int payment = 0;
+        int payment = 30;
         vector<int> banknotes;
-        while (payment < 30 && money >= 10) {
+
+        int remainingAmount = payment;
+        while (remainingAmount > 0) {
             int banknote = 0;
-            if (money >= 50) {
-                banknote = 50;
-            } else if (money >= 20) {
+            int randChoice = rand() % 2; 
+            if (remainingAmount >= 20 && randChoice == 0) {
                 banknote = 20;
             } else {
                 banknote = 10;
             }
             banknotes.push_back(banknote);
-            payment += banknote;
-            money -= banknote;
+            remainingAmount -= banknote;
+        }
+
+        money -= payment;
+
+        // Display the banknotes used for payment
+        cout << "Klient " << id << " przybył do salonu i zapłacił 30 zł - ";
+        map<int, int> banknoteCount;
+        for (int bn : banknotes) {
+            banknoteCount[bn]++;
+        }
+        for (auto& pair : banknoteCount) {
+            cout <<  "$" << pair.first << "x" << pair.second << " ";
+        }
+        cout << endl;
+        sleep(1);
+
+        // Dodanie banknotów do kasy
+        for (int banknote : banknotes) {
+            kasaPtr->dodajBanknot(banknote);
         }
 
         // Wysyłanie informacji do fryzjera o przybyciu
@@ -107,13 +127,7 @@ void Klient::dzialaj() {
             exit(EXIT_FAILURE);
         }
 
-        cout << "Klient " << id << " przybyl do salonu i zaplacil " << payment << " zl" << endl;
         sleep(1);
-
-        // Dodanie banknotów do kasy
-        for (int banknote : banknotes) {
-            kasaPtr->dodajBanknot(banknote);
-        }
 
         // Oczekiwanie na zakończenie usługi i wydanie reszty
         Message responseMsg;
@@ -143,7 +157,5 @@ void Klient::dzialaj() {
 
         cout << "Klient " << id << " opuszcza salon i wraca do zarabiania pieniedzy." << endl;
         sleep(1);
-
-        // Klient wraca do zarabiania pieniędzy przed kolejną wizytą
     }
 }

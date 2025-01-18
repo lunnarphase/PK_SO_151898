@@ -83,7 +83,7 @@ void Fryzjer::dzialaj() {
             int wydane10 = 0, wydane20 = 0, wydane50 = 0;
             if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {
                 cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl"
-                     << " - [$10 x" << wydane10 << ", " << "$20 x" << wydane20 << ", " << "$50 x" << wydane50 << " ]" << endl;
+                     << " - $10x" << wydane10 << " " << "$20x" << wydane20 << " " << "$50x" << wydane50 << endl;
                 sleep(1);
                 break;
             } else {

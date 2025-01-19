@@ -176,3 +176,8 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
         return false;
     }
 }
+
+void Kasa::printBanknotes() 
+{
+    printf("Banknoty 10zl: %d, Banknoty 20zl: %d, Banknoty 50zl: %d\n", *banknoty10, *banknoty20, *banknoty50);
+}

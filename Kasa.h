@@ -8,15 +8,15 @@
 
 class Kasa {
 public:
-    int* banknoty10;
-    int* banknoty20;
-    int* banknoty50;
+    int* banknoty10; // Liczba banknotow o nominale 10 zl
+    int* banknoty20; // Liczba banknotow o nominale 20 zl
+    int* banknoty50; // Liczba banknotow o nominale 50 zl
 
-    int shmid;
-    int semid;
-    key_t shmkey;
-    key_t semkey;
-
+    int shmid;       // Identyfikator pamieci wspoldzielonej
+    int semid;       // Identyfikator semafora
+    key_t shmkey;    // Klucz pamieci wspoldzielonej
+    key_t semkey;    // Klucz semafora
+ 
     Kasa();
     ~Kasa();
 
@@ -27,4 +27,5 @@ public:
 
     void dodajBanknot(int nominal);
     bool wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50);
+    void printBanknotes();
 };

@@ -61,7 +61,7 @@ void Klient::dzialaj()
         {
             // Jesli brakuje miejsca w poczekalni
             if (errno == EAGAIN) { 
-                int cooldown = rand() % 8 + 3; // Czas oczekiwania na ponowna probe
+                int cooldown = rand() % 8 + 3; // Czas oczekiwania na ponowna probe, od 3 do 10 sekund
                 cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni. Sproboje ponownie za " << cooldown << " sekund" << endl;
                 sleep(cooldown);
                 continue;

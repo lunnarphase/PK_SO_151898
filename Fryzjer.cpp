@@ -62,7 +62,10 @@ void Fryzjer::dzialaj()
         int payment = msg.paymentAmount; 
         int klientPid = msg.pid;         
 
-        // Zajmowanie fotela
+        for (int i = 0; i < msg.numBanknotes; i++) {
+            kasaPtr->dodajBanknot(msg.banknotes[i]);
+        }
+
         struct sembuf sb_fotel = {0, -1, 0};
         if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) {
             if (errno == EINTR) {
@@ -97,6 +100,10 @@ void Fryzjer::dzialaj()
             if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {
                 cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl"
                      << " - $10x" << wydane10 << " " << "$20x" << wydane20 << " " << "$50x" << wydane50 << endl;
+
+                cout << "Aktualny stan banknotow w kasie: ";
+                kasaPtr->printBanknotes();
+
                 sleep(1);
                 break;
             } else {

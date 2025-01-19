@@ -62,16 +62,16 @@ void Fryzjer::dzialaj()
         int payment = msg.paymentAmount; 
         int klientPid = msg.pid;         
 
+        // Obliczanie sumy otrzymanych banknotów i dodawanie ich do kasy
         int totalGivenAmount = 0;
         for (int i = 0; i < msg.numBanknotes; ++i) {
             int banknote = msg.banknotes[i];
             totalGivenAmount += banknote;
-            // Dodanie banknotu do kasy
-            kasaPtr->dodajBanknot(banknote);
+            kasaPtr->dodajBanknot(banknote); // Dodanie banknotu do kasy
         }
 
         // Obliczanie reszty
-        int reszta = totalGivenAmount - 30;
+        int reszta = totalGivenAmount - 30; // 30 zł to koszt usługi
 
         struct sembuf sb_fotel = {0, -1, 0};
         if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) {
@@ -88,7 +88,8 @@ void Fryzjer::dzialaj()
         }
 
         // Symulacja obsługi klienta przez określony czas
-        cout << "\033[1;34mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
+        // cout << "\033[1;34mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
+        cout << "\033[1;94mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
         int czasObslugi = 3;  // Czas obsługi w sekundach
         int czasSpedzony = 0;
         while (czasSpedzony < czasObslugi && !sygnal2) {

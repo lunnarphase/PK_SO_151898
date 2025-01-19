@@ -6,10 +6,10 @@
 
 class Klient {
 public:
-    int id;
-    int money; // Aktualna ilość pieniędzy klienta
-    Salon* salonPtr;
-    Kasa* kasaPtr;
+    int id;             // Identyfikator klienta
+    int money;          // Aktualna ilość pieniędzy klienta
+    Salon* salonPtr;    // Wskaźnik do salonu
+    Kasa* kasaPtr;      // Wskaźnik do kasy
 
     Klient(int id, Salon* salonPtr, Kasa* kasaPtr);
 

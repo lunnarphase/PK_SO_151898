@@ -12,31 +12,30 @@
 
 using namespace std;
 
-extern bool salonOtwarty;
-extern volatile sig_atomic_t sygnal2;
+extern bool salonOtwarty;               // Zmienna globalna informujaca o stanie salonu
+extern volatile sig_atomic_t sygnal2;   // Zmienna globalna informujaca o sygnale 2
 
-struct Message {
-    long mtype;
-    int clientId;
-    int paymentAmount;
-    int banknotes[10]; // Max 10 banknotow
-    int numBanknotes;
-    int pid; // PID klienta
+struct Message 
+{
+    long mtype;         // Typ wiadomosci
+    int clientId;       // Identyfikator klienta
+    int paymentAmount;  // Kwota platnosci
+    int banknotes[10];  // Max 10 banknotow
+    int numBanknotes;   // Liczba banknotow
+    int pid;            // PID klienta
 };
 
-const long MSG_TYPE_CLIENT_ARRIVAL = 1;
+const long MSG_TYPE_CLIENT_ARRIVAL = 1; // Typ wiadomosci o przybyciu klienta
 
-Klient::Klient(int id, Salon* salonPtr, Kasa* kasaPtr)
-    : id(id), salonPtr(salonPtr), kasaPtr(kasaPtr), money(0) {
-}
+Klient::Klient(int id, Salon* salonPtr, Kasa* kasaPtr) : id(id), salonPtr(salonPtr), kasaPtr(kasaPtr), money(0) {}
 
-void Klient::dzialaj() {
-
+void Klient::dzialaj() 
+{
     signal(SIGUSR2, obslugaSygnalu2);
 
-    while (!sygnal2 && salonOtwarty) {
-
-        // Klient zarabia pieniądze, aż uzbiera co najmniej 50 zł
+    while (!sygnal2 && salonOtwarty) 
+    {
+        // Klient zarabia pieniadze, az uzbiera co najmniej 50 zl
         while (money < 50 && !sygnal2 && salonOtwarty) {
             cout << "\033[1;33mKlient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl\033[0m" << endl;
             sleep(1);
@@ -46,10 +45,10 @@ void Klient::dzialaj() {
             break;
         }
 
-        key_t key = MSGQUEUE_KEY;
-        int msgid = msgget(key, 0600 | IPC_CREAT);
+        key_t key = MSGQUEUE_KEY;                  // Klucz kolejki komunikatow
+        int msgid = msgget(key, 0600 | IPC_CREAT); // Utworzenie kolejki komunikatow
 
-        if (msgid == -1) {
+        if (msgid == -1) { // Obsluga bledu utworzenia kolejki komunikatow
             perror("Blad: msgget");
             exit(EXIT_FAILURE);
         }
@@ -57,9 +56,12 @@ void Klient::dzialaj() {
         // Sprawdzenie, czy jest miejsce w poczekalni
         struct sembuf sb = {0, -1, IPC_NOWAIT};
 
-        if (semop(salonPtr->semidPoczekalnia, &sb, 1) == -1) {
-            if (errno == EAGAIN) {
-                int cooldown = rand() % 8 + 3; // Losowy czas pracy od 3 do 10 sekund
+        // Proba zajecia miejsca w poczekalni
+        if (semop(salonPtr->semidPoczekalnia, &sb, 1) == -1) 
+        {
+            // Jesli brakuje miejsca w poczekalni
+            if (errno == EAGAIN) { 
+                int cooldown = rand() % 8 + 3; // Czas oczekiwania na ponowna probe
                 cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni. Sproboje ponownie za " << cooldown << " sekund" << endl;
                 sleep(cooldown);
                 continue;
@@ -75,14 +77,13 @@ void Klient::dzialaj() {
             perror("Blad: semctl GETVAL for semidPoczekalnia");
             exit(EXIT_FAILURE);
         }
-        int occupiedWaitingSeats = salonPtr->pojemnoscPoczekalni - currPoczekalniaVal;
 
+        int occupiedWaitingSeats = salonPtr->pojemnoscPoczekalni - currPoczekalniaVal; // Pobranie liczby zajetych miejsc w poczekalni
         cout << "Klient " << id << " udaje sie do poczekalni - aktualny stan poczekalni: " << occupiedWaitingSeats << " / " << salonPtr->pojemnoscPoczekalni << endl;
 
-        // Przygotowanie płatności
-        int payment = 30;
-        vector<int> banknotes;
-
+        // ## Przygotowanie płatności ##
+        int payment = 30;        // Kwota platnosci
+        vector<int> banknotes;   // Banknoty uzyte do platnosci
         int remainingAmount = payment;
         while (remainingAmount > 0) {
             int banknote = 0;
@@ -98,7 +99,7 @@ void Klient::dzialaj() {
 
         money -= payment;
 
-        // Display the banknotes used for payment
+        // Wyswietlenie informacji o ilosci i wartosci uzytych banknotow
         cout << "Klient " << id << " przygotowal platnosc - ";
         map<int, int> banknoteCount;
         for (int bn : banknotes) {
@@ -110,12 +111,13 @@ void Klient::dzialaj() {
         cout << endl;
         sleep(1);
 
-        // Wysyłanie informacji do fryzjera o przybyciu
+        // Wyslanie wiadomosci do fryzjera
         Message msg;
         msg.mtype = MSG_TYPE_CLIENT_ARRIVAL;
         msg.clientId = id;
         msg.paymentAmount = payment;
         msg.numBanknotes = banknotes.size();
+
         for (int i = 0; i < banknotes.size(); ++i) {
             msg.banknotes[i] = banknotes[i];
         }

@@ -9,17 +9,17 @@
 
 class Salon {
 public:
-    int* wolneFotele;
-    int pojemnoscPoczekalni;
-    int liczbaFoteli;
+    int* wolneFotele;           // Liczba wolnych foteli
+    int pojemnoscPoczekalni;    // Pojemnosc poczekalni
+    int liczbaFoteli;           // Liczba foteli w salonie
 
-    int shmidFotele;
-    int semidFotele;
-    int semidPoczekalnia;
+    int shmidFotele;        // Identyfikator pamieci wspoldzielonej dla foteli
+    int semidFotele;        // Identyfikator semafora dla foteli
+    int semidPoczekalnia;   // Identyfikator semafora dla poczekalni
 
-    pthread_mutex_t mtxPoczekalnia;
-    pthread_mutex_t mtxFotele;
-    pthread_cond_t  cvPoczekalnia;
+    pthread_mutex_t mtxPoczekalnia; // Mutex dla poczekalni - dostep do zmiennej pojemnoscPoczekalni
+    pthread_mutex_t mtxFotele;      // Mutex dla foteli - dostep do zmiennej wolneFotele
+    pthread_cond_t  cvPoczekalnia;  // Zmienna warunkowa dla poczekalni
 
     Salon(int nFotele, int kPoczekalnia);
     ~Salon();
@@ -29,5 +29,5 @@ public:
     void removeSharedMemory();
     void removeSemaphores();
 
-    Salon& operator=(const Salon& other);
+    Salon& operator=(const Salon& other); // Przeciazenie operatora przypisania
 };

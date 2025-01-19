@@ -6,9 +6,9 @@
 
 class Fryzjer {
 public:
-    int id;
-    Salon* salonPtr;
-    Kasa* kasaPtr;
+    int id;          // Identyfikator fryzjera
+    Salon* salonPtr; // Wskaźnik do salonu
+    Kasa* kasaPtr;   // Wskaźnik do kasy
 
     Fryzjer(int id, Salon* salonPtr, Kasa* kasaPtr);
 

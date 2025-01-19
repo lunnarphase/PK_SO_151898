@@ -10,38 +10,40 @@
 
 using namespace std;
 
-extern bool salonOtwarty;
-extern volatile sig_atomic_t sygnal1;
-extern volatile sig_atomic_t sygnal2;
+extern bool salonOtwarty;             // Zmienna globalna informujaca o stanie salonu
+extern volatile sig_atomic_t sygnal1; // Zmienna globalna informujaca o sygnale 1
+extern volatile sig_atomic_t sygnal2; // Zmienna globalna informujaca o sygnale 2
 
-struct Message {
-    long mtype;
-    int clientId;
-    int paymentAmount;
-    int banknotes[10]; // Max 10 banknotow
-    int numBanknotes;
-    int pid; // PID klienta
+struct Message 
+{
+    long mtype;         // Typ wiadomosci
+    int clientId;       // Identyfikator klienta
+    int paymentAmount;  // Kwota platnosci
+    int banknotes[10];  // Max 10 banknotow
+    int numBanknotes;   // Liczba banknotow
+    int pid;            // PID klienta
 };
 
-const long MSG_TYPE_CLIENT_ARRIVAL = 1;
+const long MSG_TYPE_CLIENT_ARRIVAL = 1;  // Typ wiadomosci o przybyciu klienta
 
-Fryzjer::Fryzjer(int id, Salon* salonPtr, Kasa* kasaPtr)
-    : id(id), salonPtr(salonPtr), kasaPtr(kasaPtr) {
-}
+Fryzjer::Fryzjer(int id, Salon* salonPtr, Kasa* kasaPtr) : id(id), salonPtr(salonPtr), kasaPtr(kasaPtr) {}
 
-void Fryzjer::dzialaj() {
+void Fryzjer::dzialaj() 
+{
     signal(SIGUSR1, obslugaSygnalu1);
     signal(SIGUSR2, obslugaSygnalu2);
 
-    key_t key = MSGQUEUE_KEY;
-    int msgid = msgget(key, 0600 | IPC_CREAT);
+    key_t key = MSGQUEUE_KEY;                   // Klucz kolejki komunikatow
+    int msgid = msgget(key, 0600 | IPC_CREAT);  // Utworzenie kolejki komunikatow
 
     if (msgid == -1) {
         perror("Blad: msgget");
         exit(EXIT_FAILURE);
     }
 
-    while (salonOtwarty && !sygnal2) {
+    while (salonOtwarty && !sygnal2) 
+    {
+        // Oczekiwanie na przybycie klienta
         Message msg;
         if (msgrcv(msgid, &msg, sizeof(Message) - sizeof(long), MSG_TYPE_CLIENT_ARRIVAL, 0) == -1) {
             if (errno == EINTR) {
@@ -56,9 +58,9 @@ void Fryzjer::dzialaj() {
             continue;
         }
 
-        int klientId = msg.clientId;
-        int payment = msg.paymentAmount;
-        int klientPid = msg.pid; // PID klienta
+        int klientId = msg.clientId;      
+        int payment = msg.paymentAmount; 
+        int klientPid = msg.pid;         
 
         // Zajmowanie fotela
         struct sembuf sb_fotel = {0, -1, 0};
@@ -77,10 +79,10 @@ void Fryzjer::dzialaj() {
 
         // Symulacja obsługi klienta przez określony czas
         cout << "\033[1;34mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
-        int czasObslugi = 3; // Czas obsługi w sekundach
+        int czasObslugi = 3;  // Czas obsługi w sekundach
         int czasSpedzony = 0;
         while (czasSpedzony < czasObslugi && !sygnal2) {
-            sleep(1); // Symulowanie 1 sekundy obsługi
+            sleep(1);
             czasSpedzony++;
         }
         if (sygnal2) {
@@ -105,11 +107,12 @@ void Fryzjer::dzialaj() {
 
         // Wysłanie wiadomości do klienta o zakończeniu usługi
         Message responseMsg;
-        responseMsg.mtype = klientPid; // Używamy PID klienta jako typ wiadomości
-        responseMsg.clientId = klientId;
+        responseMsg.mtype = klientPid;      // Używamy PID klienta jako typ wiadomości
+        responseMsg.clientId = klientId;    // Identyfikator klienta
         responseMsg.paymentAmount = reszta; // Kwota reszty
-        responseMsg.pid = getpid(); // PID fryzjera
+        responseMsg.pid = getpid();         // PID fryzjera
 
+        // Wysłanie wiadomości do klienta
         if (msgsnd(msgid, &responseMsg, sizeof(Message) - sizeof(long), 0) == -1) {
             perror("Blad: msgsnd do klienta");
             exit(EXIT_FAILURE);
@@ -122,6 +125,7 @@ void Fryzjer::dzialaj() {
             exit(EXIT_FAILURE);
         }
 
+        // Sprawdzenie czy otrzymano sygnal 1
         if (sygnal1) {
             cout << "\nOdebrano sygnal 1. Fryzjer " << id << " konczy prace" << endl;
             sleep(1);

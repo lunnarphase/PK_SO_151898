@@ -11,19 +11,23 @@ Kasa::Kasa() {
 
 Kasa::~Kasa() {}
 
-void Kasa::initSharedMemory() {
+void Kasa::initSharedMemory() 
+{
+    // Utworz segment pamieci wspoldzielonej
     shmid = shmget(SHMKEY_KASA, 3 * sizeof(int), 0600 | IPC_CREAT);
     if (shmid == -1) {
         perror("Blad: shmget");
         exit(EXIT_FAILURE);
     }
 
+    // Dolacz segment pamieci wspoldzielonej
     int* shared_mem = (int*)shmat(shmid, nullptr, 0);
     if (shared_mem == (void*)-1) {
         perror("Blad: shmat");
         exit(EXIT_FAILURE);
     }
 
+    // Przypisz wskazniki do banknotow
     banknoty10 = &shared_mem[0];
     banknoty20 = &shared_mem[1];
     banknoty50 = &shared_mem[2];
@@ -34,17 +38,22 @@ void Kasa::initSharedMemory() {
     *banknoty50 = 5;
 }
 
-void Kasa::removeSharedMemory() {
+void Kasa::removeSharedMemory() 
+{
+    // Odlacz segment pamieci wspoldzielonej
     if (shmdt(banknoty10) == -1) {
         perror("Blad: shmdt");
     }
 
+    // Usun segment pamieci wspoldzielonej
     if (shmctl(shmid, IPC_RMID, nullptr) == -1) {
         perror("Blad: shmctl");
     }
 }
 
-void Kasa::initSemaphore() {
+void Kasa::initSemaphore() 
+{
+    // Utworz semafor
     semid = semget(SEMKEY_KASA, 1, 0600 | IPC_CREAT);
     if (semid == -1) {
         perror("Blad: semget");
@@ -58,19 +67,23 @@ void Kasa::initSemaphore() {
     }
 }
 
-void Kasa::removeSemaphore() {
+void Kasa::removeSemaphore() 
+{
+    // Usun semafor
     if (semctl(semid, 0, IPC_RMID) == -1) {
         perror("Blad: semctl IPC_RMID");
     }
 }
 
-void Kasa::dodajBanknot(int nominal) {
+void Kasa::dodajBanknot(int nominal) 
+{
     // Semapfor (operacja P)
     struct sembuf sem_op;
     sem_op.sem_num = 0;
     sem_op.sem_op = -1;  // Czekaj
     sem_op.sem_flg = 0;
 
+    // Czekaj na dostep do pamieci wspoldzielonej
     if (semop(semid, &sem_op, 1) == -1) {
         perror("Blad: semop wait");
         exit(EXIT_FAILURE);
@@ -90,21 +103,24 @@ void Kasa::dodajBanknot(int nominal) {
         break;
     }
 
-    // Semafor (operacja V)
-    sem_op.sem_op = 1;  // Sygnal
+    sem_op.sem_op = 1; // Semafor (operacja V)
+
+    // Sygnalizuj dostep do pamieci wspoldzielonej
     if (semop(semid, &sem_op, 1) == -1) {
         perror("Blad: Wystapil blad uzycia sygnalu semop");
         exit(EXIT_FAILURE);
     }
 }
 
-bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50) {
+bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50) 
+{
     // Semafor 'czekaj' (operacja P)
     struct sembuf sem_op;
     sem_op.sem_num = 0;
     sem_op.sem_op = -1;  // Czekaj
     sem_op.sem_flg = 0;
 
+    // Czekaj na dostep do pamieci wspoldzielonej
     if (semop(semid, &sem_op, 1) == -1) {
         perror("Blad: semop wait");
         exit(EXIT_FAILURE);
@@ -151,6 +167,8 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50) 
     } else {
         // Nie mozna wydac reszty, klient musi zaczekac - Semafor (operacja V)
         sem_op.sem_op = 1;  // Sygnal
+
+        // Sygnalizuj dostep do pamieci wspoldzielonej
         if (semop(semid, &sem_op, 1) == -1) {
             perror("Blad: Wystapil blad uzycia sygnalu semop");
             exit(EXIT_FAILURE);

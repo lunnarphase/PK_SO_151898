@@ -20,10 +20,10 @@ public:
     Kasa();
     ~Kasa();
 
-    void initSharedMemory();
-    void initSemaphore();
-    void removeSharedMemory();
-    void removeSemaphore();
+    void initSharedMemory();    // Inicjalizacja pamieci wspoldzielonej
+    void initSemaphore();       // Inicjalizacja semafora
+    void removeSharedMemory();  // Usuniecie pamieci wspoldzielonej
+    void removeSemaphore();     // Usuniecie semafora
 
     void dodajBanknot(int nominal);
     bool wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50);

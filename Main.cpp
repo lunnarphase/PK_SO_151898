@@ -50,64 +50,37 @@ int main()
     cout << "\n\033[1;30mKonfiguracja ukonczona.\033[0m\n" << endl; // Debug
     sleep(1);
 
-    // Ensure the files exist before any ftok() calls
-    FILE *fp;
-
-    fp = fopen("salon_msgqueue", "w");
-    if (fp == NULL) {
-        perror("Failed to create file 'salon_msgqueue' for ftok");
-        exit(EXIT_FAILURE);
-    }
-    fclose(fp);
-
-    fp = fopen("salon_shmkey_fotele", "w");
-    if (fp == NULL) {
-        perror("Failed to create file 'salon_shmkey_fotele' for ftok");
-        exit(EXIT_FAILURE);
-    }
-    fclose(fp);
-
-    fp = fopen("kasa_shmkey", "w");
-    if (fp == NULL) {
-        perror("Failed to create file 'kasa_shmkey' for ftok");
-        exit(EXIT_FAILURE);
-    }
-    fclose(fp);
-
-    // Initialize salon with proper values
     salon = Salon(N, K);
 
+    // Inicjalizacja pamieci wspoldzielonej i semaforow
     kasa.initSharedMemory();
     kasa.initSemaphore();
-
     salon.initSharedMemory();
     salon.initSemaphores();
 
-    signal(SIGUSR1, obslugaSygnalu1);  // Signal 1
-    signal(SIGUSR2, obslugaSygnalu2);  // Signal 2
+    signal(SIGUSR1, obslugaSygnalu1);  // Sygnal 1
+    signal(SIGUSR2, obslugaSygnalu2);  // Sygnal 2
 
-    // Create barber processes
+    // Utworzenie procesow fryzjerow
     for (int i = 1; i <= F; ++i) {
         pid_t pid = fork();
         if (pid == -1) {
             perror("Blad: Wystapil blad przy tworzeniu procesow fryzjerow");
             exit(EXIT_FAILURE);
         }
-        if (pid == 0) {
-            // Child process - Fryzjer
+        if (pid == 0) { // Proces potomny - Fryzjer
             Fryzjer fryzjer(i, &salon, &kasa);
             fryzjer.dzialaj();
             exit(0);
         } else {
-            // Parent process - store barber PID
-            barberPIDs.push_back(pid);
+            barberPIDs.push_back(pid); // Proces rodzic - zapisuje PID fryzjera
         }
     }
 
     cout << "\n\033[1;30m## Fryzjerzy utworzeni ##\033[0m" << endl;
     sleep(1);
 
-    // Start time simulation in separate thread
+    // Utworzenie watku symulujacego czas
     pthread_t czasThread;
     int ret = pthread_create(&czasThread, nullptr, symulujCzas, nullptr);
     if (ret != 0) {
@@ -117,55 +90,48 @@ int main()
     cout << "\n\033[1;30m## Symulacja czasu uruchomiona ##\033[0m\n" << endl;
     sleep(2);
 
-    // Create client processes
+    // Utworzenie procesow klientow
     for (int i = 1; i <= LICZBA_KLIENTOW; ++i) {
         pid_t pid = fork();
         if (pid == -1) {
             perror("Error creating client process");
             exit(EXIT_FAILURE);
         }
-        if (pid == 0) {
-            // Child process - Klient
+        if (pid == 0) { // Proces potomny - Klient
             Klient klient(i, &salon, &kasa);
             klient.dzialaj();
             exit(0);
-        } else {
-            // Parent process - store client PID
-            clientPIDs.push_back(pid);
+        } else { 
+            clientPIDs.push_back(pid); // Proces rodzic - zapisuje PID klienta
         }
-        sleep(rand() % 3 + 1);  // Random time intervals between clients
+        sleep(rand() % 3 + 1);  // Losowy czas miedzy utworzeniem kolejnych klientow (1-3 sekundy)
     }
 
-    // Wait for time simulation thread to finish
+    // Oczekiwanie na zakonczenie watku symulujacego czas
     if (pthread_join(czasThread, nullptr) != 0) {
         perror("Blad: Nie udalo sie dolaczyc watku czasu !!!");
     }
 
     // Salon jest zamknięty - wyślij sygnały do klientów i fryzjerów
-
-    // Send SIGUSR2 to all client processes
-    for (pid_t pid : clientPIDs) {
-        kill(pid, SIGUSR2);
+    for (pid_t pid : clientPIDs) { 
+        kill(pid, SIGUSR2); // Sygnal 2
     }
 
-    // Wait for clients to finish
-    for (pid_t pid : clientPIDs) {
-        waitpid(pid, NULL, 0);
+    for (pid_t pid : clientPIDs) { 
+        waitpid(pid, NULL, 0); // Czekaj na zakonczenie procesow klientow
     }
 
-    // Send SIGUSR1 to all barber processes
     for (pid_t pid : barberPIDs) {
-        kill(pid, SIGUSR1);
+        kill(pid, SIGUSR1); // Sygnal 1
     }
 
-    // Wait for barbers to finish
     for (pid_t pid : barberPIDs) {
-        waitpid(pid, NULL, 0);
+        waitpid(pid, NULL, 0); // Czekaj na zakonczenie procesow fryzjerow
     }
 
     cout << "\n\033[1;31m=#= Salon zakonczyl prace =#=\033[0m\n" << endl;
 
-    // Cleanup shared resources
+    // Usuniecie pamieci wspoldzielonej i semaforow
     kasa.removeSharedMemory();
     kasa.removeSemaphore();
     salon.removeSharedMemory();
@@ -227,7 +193,7 @@ void* symulujCzas(void* arg) {
         cout << "\n\033[1;32m|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\033[0m\n" << endl;
         sleep(1);
 
-        sleep(10);   // odpowiada 1 godzinie w salonie
+        sleep(10);   // Czas odpowiadajacy 1 godzinie w salonie
         aktualnaGodzina++;
 
         if (aktualnaGodzina >= Tk) 
@@ -240,7 +206,6 @@ void* symulujCzas(void* arg) {
             for (pid_t pid : clientPIDs) {
                 kill(pid, SIGUSR2);
             }
-
             for (pid_t pid : barberPIDs) {
                 kill(pid, SIGUSR2);
             }

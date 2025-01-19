@@ -33,9 +33,9 @@ void Kasa::initSharedMemory()
     banknoty50 = &shared_mem[2];
 
     // Inicjalizuj banknoty
-    *banknoty10 = 10;
-    *banknoty20 = 10;
-    *banknoty50 = 5;
+    *banknoty10 = 0;
+    *banknoty20 = 0;
+    *banknoty50 = 0;
 }
 
 void Kasa::removeSharedMemory() 

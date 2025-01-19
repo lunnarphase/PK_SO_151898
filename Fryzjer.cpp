@@ -62,9 +62,16 @@ void Fryzjer::dzialaj()
         int payment = msg.paymentAmount; 
         int klientPid = msg.pid;         
 
-        for (int i = 0; i < msg.numBanknotes; i++) {
-            kasaPtr->dodajBanknot(msg.banknotes[i]);
+        int totalGivenAmount = 0;
+        for (int i = 0; i < msg.numBanknotes; ++i) {
+            int banknote = msg.banknotes[i];
+            totalGivenAmount += banknote;
+            // Dodanie banknotu do kasy
+            kasaPtr->dodajBanknot(banknote);
         }
+
+        // Obliczanie reszty
+        int reszta = totalGivenAmount - 30;
 
         struct sembuf sb_fotel = {0, -1, 0};
         if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) {
@@ -94,7 +101,6 @@ void Fryzjer::dzialaj()
         }
 
         // Wydawanie reszty
-        int reszta = payment - 30;
         while (true) {
             int wydane10 = 0, wydane20 = 0, wydane50 = 0;
             if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {

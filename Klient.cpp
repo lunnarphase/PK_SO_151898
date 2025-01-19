@@ -81,26 +81,21 @@ void Klient::dzialaj()
         int occupiedWaitingSeats = salonPtr->pojemnoscPoczekalni - currPoczekalniaVal; // Pobranie liczby zajetych miejsc w poczekalni
         cout << "Klient " << id << " udaje sie do poczekalni - aktualny stan poczekalni: " << occupiedWaitingSeats << " / " << salonPtr->pojemnoscPoczekalni << endl;
 
-        // ## Przygotowanie płatności ##
-        int payment = 30;        // Kwota platnosci
-        vector<int> banknotes;   // Banknoty uzyte do platnosci
-        int remainingAmount = payment;
-        while (remainingAmount > 0) {
-            int banknote = 0;
-            int randChoice = rand() % 2;
-            if (remainingAmount >= 20 && randChoice == 0) {
-                banknote = 20;
-            } else {
-                banknote = 10;
-            }
+        // Przygotowanie płatności
+        int payment = 30;        // Kwota płatności (koszt usługi)
+        vector<int> banknotes;   // Banknoty użyte do płatności
+        int totalBanknotesAmount = 0;
+        while (totalBanknotesAmount < payment) {
+            int banknote = 50;  // Wymuszenie użycia banknotu 50 zł
             banknotes.push_back(banknote);
-            remainingAmount -= banknote;
+            totalBanknotesAmount += banknote;
         }
 
-        money -= payment;
+        // Aktualizacja pieniędzy klienta
+        money -= totalBanknotesAmount;
 
-        // Wyswietlenie informacji o ilosci i wartosci uzytych banknotow
-        cout << "Klient " << id << " przygotowal platnosc - ";
+        // Wyświetlenie informacji o płatności
+        cout << "Klient " << id << " przygotował płatność - ";
         map<int, int> banknoteCount;
         for (int bn : banknotes) {
             banknoteCount[bn]++;
@@ -111,11 +106,11 @@ void Klient::dzialaj()
         cout << endl;
         sleep(1);
 
-        // Wyslanie wiadomosci do fryzjera
+        // Wysłanie wiadomości do fryzjera
         Message msg;
         msg.mtype = MSG_TYPE_CLIENT_ARRIVAL;
         msg.clientId = id;
-        msg.paymentAmount = payment;
+        msg.paymentAmount = totalBanknotesAmount;  // Faktyczna kwota przekazana przez klienta
         msg.numBanknotes = banknotes.size();
 
         for (int i = 0; i < banknotes.size(); ++i) {

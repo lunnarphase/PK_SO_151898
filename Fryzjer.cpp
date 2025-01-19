@@ -107,10 +107,7 @@ void Fryzjer::dzialaj()
             if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {
                 cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl"
                      << " - $10x" << wydane10 << " " << "$20x" << wydane20 << " " << "$50x" << wydane50 << endl;
-
-                cout << "Aktualny stan banknotow w kasie: ";
                 kasaPtr->printBanknotes();
-
                 sleep(1);
                 break;
             } else {

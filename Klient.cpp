@@ -37,7 +37,7 @@ void Klient::dzialaj()
     {
         // Klient zarabia pieniadze, aż uzbiera co najmniej 50 zł
         while (money < 50 && !sygnal2 && salonOtwarty) {
-            cout << "\033[1;33mKlient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl\033[0m" << endl;
+            cout << "\033[1;33mKlient " << id << " zarabia pieniadze. Aktualnie ma: $" << money << "\033[0m" << endl;
             sleep(1);
             money += 10;
         }
@@ -120,7 +120,7 @@ void Klient::dzialaj()
         money -= totalBanknotesAmount;
 
         // Wyświetlenie informacji o płatności
-        cout << "Klient " << id << " przygotował płatność - ";
+        cout << "Klient " << id << " placi za usluge - ";
         map<int, int> banknoteCount;
         for (int bn : banknotes) {
             banknoteCount[bn]++;
@@ -128,17 +128,17 @@ void Klient::dzialaj()
         for (auto& pair : banknoteCount) {
             cout << "$" << pair.first << "x" << pair.second << " ";
         }
-        cout << "(Łącznie: " << totalBanknotesAmount << " zł)" << endl;
+        cout << "(Razem: $" << totalBanknotesAmount << ") - banknoty trafiaja do kasy" << endl;
         sleep(1);
 
         // Wysłanie wiadomości do fryzjera
         Message msg;
         msg.mtype = MSG_TYPE_CLIENT_ARRIVAL;
         msg.clientId = id;
-        msg.paymentAmount = totalBanknotesAmount;  // Faktyczna kwota przekazana fryzjerowi
-        msg.numBanknotes = banknotes.size();
-        for (int i = 0; i < banknotes.size(); ++i) {
-            msg.banknotes[i] = banknotes[i];
+        msg.paymentAmount = totalBanknotesAmount;    // Faktyczna kwota przekazana fryzjerowi
+        msg.numBanknotes = banknotes.size();         // Liczba banknotów
+        for (int i = 0; i < banknotes.size(); ++i) { // Przekazanie banknotów
+            msg.banknotes[i] = banknotes[i];        
         }
         msg.pid = getpid(); // Dodanie PID klienta
 
@@ -174,7 +174,7 @@ void Klient::dzialaj()
         }
 
         int reszta = responseMsg.paymentAmount;
-        cout << "Klient " << id << " otrzymal reszte: " << reszta << " zl." << endl;
+        cout << "Klient " << id << " otrzymal reszte: $" << reszta << endl;
         sleep(1);
 
         money += reszta;

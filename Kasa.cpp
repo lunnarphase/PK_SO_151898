@@ -179,5 +179,7 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
 
 void Kasa::printBanknotes() 
 {
-    printf("Banknoty 10zl: %d, Banknoty 20zl: %d, Banknoty 50zl: %d\n", *banknoty10, *banknoty20, *banknoty50);
+    //printf("Banknoty 10zl: %d, Banknoty 20zl: %d, Banknoty 50zl: %d\n", *banknoty10, *banknoty20, *banknoty50);
+    // to samo ale na rozowo
+    printf("\033[1;35mAktualny stan banknotow w kasie: $10x%d $20x%d $50x%d\033[0m\n", *banknoty10, *banknoty20, *banknoty50);
 }

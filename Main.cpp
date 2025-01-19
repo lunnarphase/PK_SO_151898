@@ -77,7 +77,7 @@ int main()
         }
     }
 
-    cout << "\n\033[1;30m## Fryzjerzy utworzeni ##\033[0m" << endl;
+    cout << "\033[1;30m## Fryzjerzy utworzeni ##\033[0m" << endl;
     sleep(1);
 
     // Utworzenie watku symulujacego czas
@@ -87,7 +87,7 @@ int main()
         perror("Blad: Nie udalo sie utworzyc watku czasu !!!");
     }
 
-    cout << "\n\033[1;30m## Symulacja czasu uruchomiona ##\033[0m\n" << endl;
+    cout << "\n\033[1;30m## Symulacja czasu uruchomiona ##\033[0m" << endl;
     sleep(2);
 
     // Utworzenie procesow klientow

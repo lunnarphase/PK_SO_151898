@@ -1,15 +1,15 @@
-// #include <cstdlib>
-// #include <sys/ipc.h>
-// #include <sys/types.h>
-// #include <unistd.h>
-
 #include <iostream>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <csignal>
+#include <cstdlib>
 #include <cerrno>
 #include <ctime>
 #include <limits>
+#include <pthread.h>
+#include <sys/ipc.h>
 #include <vector>
-#include <sys/wait.h>
 
 #include "Salon.h"
 #include "Kasa.h"
@@ -32,96 +32,140 @@ int Tk;                       // godzina zamkniecia salonu
 int aktualnaGodzina;          // symulowana aktualna godzina
 bool salonOtwarty = true;     // flaga informujaca o tym, czy salon jest otwarty
 
-std::vector<pid_t> clientPIDs; // przechowuje PID-y procesow klientów
-std::vector<pid_t> barberPIDs; // przechowuje PID-y procesow fryzjerow
+Salon salon(0, 0);  // Will be initialized after configuration
+Kasa kasa;          // Kasa instance
 
-Salon salon(0, 0);  
-Kasa kasa;          
+std::vector<pid_t> clientPIDs;  // Wektor PID-ów klientów
+std::vector<pid_t> barberPIDs;  // Wektor PID-ów fryzjerów
 
 int main()
 {
     srand(time(nullptr));
-
-    cout << "\n## Uruchamianie programu ... ##\n" << endl; // Debug
-    sleep(2);
+    
+    cout << "\n\033[1;30mUruchamianie programu ...\033[0m\n" << endl; // Debug
+    sleep(1);
 
     pobierzKonfiguracje();
 
-    cout << "\n## Konfiguracja ukonczona pomyslnie ##" << endl; // Debug
-    sleep(2);
+    cout << "\n\033[1;30mKonfiguracja ukonczona.\033[0m\n" << endl; // Debug
+    sleep(1);
 
-    salon = Salon(N, K); // Inicjalizacja salon
+    // Ensure the files exist before any ftok() calls
+    FILE *fp;
+
+    fp = fopen("salon_msgqueue", "w");
+    if (fp == NULL) {
+        perror("Failed to create file 'salon_msgqueue' for ftok");
+        exit(EXIT_FAILURE);
+    }
+    fclose(fp);
+
+    fp = fopen("salon_shmkey_fotele", "w");
+    if (fp == NULL) {
+        perror("Failed to create file 'salon_shmkey_fotele' for ftok");
+        exit(EXIT_FAILURE);
+    }
+    fclose(fp);
+
+    fp = fopen("kasa_shmkey", "w");
+    if (fp == NULL) {
+        perror("Failed to create file 'kasa_shmkey' for ftok");
+        exit(EXIT_FAILURE);
+    }
+    fclose(fp);
+
+    // Initialize salon with proper values
+    salon = Salon(N, K);
 
     kasa.initSharedMemory();
     kasa.initSemaphore();
+
     salon.initSharedMemory();
     salon.initSemaphores();
 
-    signal(SIGUSR1, obslugaSygnalu1);  // Sygnal 1
-    signal(SIGUSR2, obslugaSygnalu2);  // Sygnal 2
+    signal(SIGUSR1, obslugaSygnalu1);  // Signal 1
+    signal(SIGUSR2, obslugaSygnalu2);  // Signal 2
 
-    // Tworzenie procesow fryzjerow
+    // Create barber processes
     for (int i = 1; i <= F; ++i) {
         pid_t pid = fork();
         if (pid == -1) {
             perror("Blad: Wystapil blad przy tworzeniu procesow fryzjerow");
             exit(EXIT_FAILURE);
         }
-        if (pid == 0) { // Proces potomny - Fryzjer
+        if (pid == 0) {
+            // Child process - Fryzjer
             Fryzjer fryzjer(i, &salon, &kasa);
             fryzjer.dzialaj();
             exit(0);
-        } else { 
-            barberPIDs.push_back(pid); // Proces rodzic - zapisz PID fryzjera
+        } else {
+            // Parent process - store barber PID
+            barberPIDs.push_back(pid);
         }
     }
 
-    cout << "\n## Fryzjerzy utworzeni ##" << endl;
-    sleep(2);
+    cout << "\n\033[1;30m## Fryzjerzy utworzeni ##\033[0m" << endl;
+    sleep(1);
 
-    cout << "\n#==============================================#" << endl;
-    cout << "\tSalon fryzjerski zostal otwarty. \n\tGodziny otwarcia: " << Tp << ":00 - " << Tk << ":00";
-    cout << "\n#==============================================#" << endl;
-    sleep(2);
-
-    // Rozpoczecie symulacji czasu w osobnym watku
+    // Start time simulation in separate thread
     pthread_t czasThread;
     int ret = pthread_create(&czasThread, nullptr, symulujCzas, nullptr);
     if (ret != 0) {
         perror("Blad: Nie udalo sie utworzyc watku czasu !!!");
     }
 
+    cout << "\n\033[1;30m## Symulacja czasu uruchomiona ##\033[0m\n" << endl;
     sleep(2);
 
-    // Tworzenie procesow klientow
+    // Create client processes
     for (int i = 1; i <= LICZBA_KLIENTOW; ++i) {
         pid_t pid = fork();
         if (pid == -1) {
-            perror("Blad: Nie udalo sie utworzyc procesu klienta");
+            perror("Error creating client process");
             exit(EXIT_FAILURE);
         }
-        if (pid == 0) { // Proces potomny - Klient
+        if (pid == 0) {
+            // Child process - Klient
             Klient klient(i, &salon, &kasa);
             klient.dzialaj();
             exit(0);
         } else {
-            clientPIDs.push_back(pid); // Proces rodzic - zapisz PID klienta
+            // Parent process - store client PID
+            clientPIDs.push_back(pid);
         }
-        sleep(rand() % 3 + 1);  // Losowy czas miedzy przyjsciem klientow
+        sleep(rand() % 3 + 1);  // Random time intervals between clients
     }
 
-
-    // Zaczekaj na wszystkie procesy potomne
-    while (wait(NULL) > 0);
-
-    // Dolacz watek czasu
+    // Wait for time simulation thread to finish
     if (pthread_join(czasThread, nullptr) != 0) {
         perror("Blad: Nie udalo sie dolaczyc watku czasu !!!");
     }
 
-    cout << "\n=#= Salon zakonczyl prace =#=\n" << endl;
+    // Salon jest zamknięty - wyślij sygnały do klientów i fryzjerów
 
-    // Wyczysc wspoldzielone zasoby
+    // Send SIGUSR2 to all client processes
+    for (pid_t pid : clientPIDs) {
+        kill(pid, SIGUSR2);
+    }
+
+    // Wait for clients to finish
+    for (pid_t pid : clientPIDs) {
+        waitpid(pid, NULL, 0);
+    }
+
+    // Send SIGUSR1 to all barber processes
+    for (pid_t pid : barberPIDs) {
+        kill(pid, SIGUSR1);
+    }
+
+    // Wait for barbers to finish
+    for (pid_t pid : barberPIDs) {
+        waitpid(pid, NULL, 0);
+    }
+
+    cout << "\n\033[1;31m=#= Salon zakonczyl prace =#=\033[0m\n" << endl;
+
+    // Cleanup shared resources
     kasa.removeSharedMemory();
     kasa.removeSemaphore();
     salon.removeSharedMemory();
@@ -129,11 +173,6 @@ int main()
 
     return 0;
 }
-
-#include <iostream>
-#include <limits>
-
-using namespace std;
 
 void pobierzKonfiguracje() 
 {
@@ -180,22 +219,21 @@ void pobierzKonfiguracje()
     }
 }
 
-
 void* symulujCzas(void* arg) {
     aktualnaGodzina = Tp;
 
     while (aktualnaGodzina < Tk) 
     {
-
-        cout << "\n|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\n" << endl;
+        cout << "\n\033[1;32m|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\033[0m\n" << endl;
         sleep(1);
 
         sleep(10);   // odpowiada 1 godzinie w salonie
         aktualnaGodzina++;
 
-        if (aktualnaGodzina >= Tk) {
-            cout << "\n!!! Salon wlasnie zostal zamkniety !!!\n" << endl;
+        if (aktualnaGodzina >= Tk) 
+        {
             salonOtwarty = false;
+            cout << "\n\033[1;31m!!! Salon wlasnie zostal zamkniety !!!\033[0m\n" << endl;
             sleep(2);
 
             // Wyslij sygnał 2 do wszystkich procesow klientow

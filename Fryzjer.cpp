@@ -45,8 +45,8 @@ void Fryzjer::dzialaj() {
         Message msg;
         if (msgrcv(msgid, &msg, sizeof(Message) - sizeof(long), MSG_TYPE_CLIENT_ARRIVAL, 0) == -1) {
             if (errno == EINTR) {
-                if (sygnal2 || !salonOtwarty) {
-                    cout << "Fryzjer " << id << " konczy prace." << endl;
+                if (sygnal1) {
+                    cout << "Fryzjer " << id << " konczy prace ze wzgledu na sygnal 1" << endl;
                     sleep(1);
                     break;
                 }
@@ -65,6 +65,7 @@ void Fryzjer::dzialaj() {
         if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) {
             if (errno == EINTR) {
                 if (sygnal2 || !salonOtwarty) {
+                    cout << "Fryzjer " << id << " konczy prace ze wzgledu na sygnal 1" << endl;
                     break;
                 }
                 continue;
@@ -74,8 +75,18 @@ void Fryzjer::dzialaj() {
             }
         }
 
-        cout << "Fryzjer " << id << " obsluguje klienta " << klientId << "." << endl;
-        sleep(2); // Wykonywanie usługi
+        // Symulacja obsługi klienta przez określony czas
+        cout << "\033[1;34mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
+        int czasObslugi = 3; // Czas obsługi w sekundach
+        int czasSpedzony = 0;
+        while (czasSpedzony < czasObslugi && !sygnal2) {
+            sleep(1); // Symulowanie 1 sekundy obsługi
+            czasSpedzony++;
+        }
+        if (sygnal2) {
+            cout << "Fryzjer " << id << " przerywa obsługę klienta " << klientId << " z powodu sygnału 2." << endl;
+            cout << "Klient " << klientId << " opuszcza salon." << endl;
+        }
 
         // Wydawanie reszty
         int reszta = payment - 30;

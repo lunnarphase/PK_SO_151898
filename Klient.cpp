@@ -37,13 +37,10 @@ void Klient::dzialaj() {
     while (!sygnal2 && salonOtwarty) {
 
         // Klient zarabia pieniądze, aż uzbiera co najmniej 50 zł
-        while (money < 50) {
-            cout << "Klient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl" << endl;
-            sleep(1); // Symulacja godziny pracy
+        while (money < 50 && !sygnal2 && salonOtwarty) {
+            cout << "\033[1;33mKlient " << id << " zarabia pieniadze. Aktualnie ma: " << money << " zl\033[0m" << endl;
+            sleep(1);
             money += 10;
-            if (sygnal2 || !salonOtwarty) {
-                break;
-            }
         }
         if (sygnal2 || !salonOtwarty) {
             break;

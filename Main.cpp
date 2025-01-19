@@ -130,18 +130,23 @@ int main()
     return 0;
 }
 
+#include <iostream>
+#include <limits>
+
+using namespace std;
+
 void pobierzKonfiguracje() 
 {
-    cout << "Wprowadz liczbe fryzjerow (F > 1): ";
-    while (!(cin >> F) || F <= 1) {
-        cout << "\nLiczba fryzjerow musi byc wieksza niz 1. Sprobuj ponownie: ";
+    cout << "Wprowadz liczbe fryzjerow (1 < F < 10): ";
+    while (!(cin >> F) || F <= 1 || F >= 10) {
+        cout << "\nLiczba fryzjerow musi byc wieksza niz 1 i mniejsza niz 10. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
     cout << "Wprowadz liczbe foteli w salonie (N < F): ";
     while (!(cin >> N) || N >= F || N <= 0) {
-        cout << "\nLiczba foteli musi byc mniejsza niż liczba fryzjerow i wieksza od 0. Sprobuj ponownie: ";
+        cout << "\nLiczba foteli musi byc mniejsza niz liczba fryzjerow i wieksza od 0. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -153,9 +158,9 @@ void pobierzKonfiguracje()
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    cout << "Wprowadz poczatkowa liczbe klientow (>= 0): ";
-    while (!(cin >> LICZBA_KLIENTOW) || LICZBA_KLIENTOW < 0) {
-        cout << "\nLiczba klientow nie moze byc ujemna. Sprobuj ponownie: ";
+    cout << "Wprowadz poczatkowa liczbe klientow (0 < LICZBA_KLIENTOW < 10): ";
+    while (!(cin >> LICZBA_KLIENTOW) || LICZBA_KLIENTOW <= 0 || LICZBA_KLIENTOW >= 10) {
+        cout << "\nLiczba klientow musi byc wieksza od 0 i mniejsza niz 10. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -174,6 +179,7 @@ void pobierzKonfiguracje()
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
+
 
 void* symulujCzas(void* arg) {
     aktualnaGodzina = Tp;

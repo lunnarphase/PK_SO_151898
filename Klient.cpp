@@ -72,6 +72,16 @@ void Klient::dzialaj() {
             }
         }
 
+        // Pobrane aktualnej wartości semafora poczekalni
+        int currPoczekalniaVal = semctl(salonPtr->semidPoczekalnia, 0, GETVAL);
+        if (currPoczekalniaVal == -1) {
+            perror("Blad: semctl GETVAL for semidPoczekalnia");
+            exit(EXIT_FAILURE);
+        }
+        int occupiedWaitingSeats = salonPtr->pojemnoscPoczekalni - currPoczekalniaVal;
+
+        cout << "Klient " << id << " udaje sie do poczekalni - aktualny stan poczekalni: " << occupiedWaitingSeats << " / " << salonPtr->pojemnoscPoczekalni << endl;
+
         // Przygotowanie płatności
         int payment = 30;
         vector<int> banknotes;
@@ -79,7 +89,7 @@ void Klient::dzialaj() {
         int remainingAmount = payment;
         while (remainingAmount > 0) {
             int banknote = 0;
-            int randChoice = rand() % 2; 
+            int randChoice = rand() % 2;
             if (remainingAmount >= 20 && randChoice == 0) {
                 banknote = 20;
             } else {
@@ -92,7 +102,7 @@ void Klient::dzialaj() {
         money -= payment;
 
         // Display the banknotes used for payment
-        cout << "Klient " << id << " przybył do salonu i zapłacił 30 zł - ";
+        cout << "Klient " << id << " przygotowal platnosc - ";
         map<int, int> banknoteCount;
         for (int bn : banknotes) {
             banknoteCount[bn]++;
@@ -102,11 +112,6 @@ void Klient::dzialaj() {
         }
         cout << endl;
         sleep(1);
-
-        // Dodanie banknotów do kasy
-        for (int banknote : banknotes) {
-            kasaPtr->dodajBanknot(banknote);
-        }
 
         // Wysyłanie informacji do fryzjera o przybyciu
         Message msg;
@@ -127,7 +132,15 @@ void Klient::dzialaj() {
             exit(EXIT_FAILURE);
         }
 
-        sleep(1);
+        // Zwolnienie miejsca w poczekalni przed obsługą
+        struct sembuf sb_signal = {0, 1, 0};
+        if (semop(salonPtr->semidPoczekalnia, &sb_signal, 1) == -1) {
+            perror("Blad: semop signal on poczekalnia");
+            exit(EXIT_FAILURE);
+        }
+
+        // Oczekiwanie na rozpoczęcie usługi (fryzjer odbierze wiadomość)
+        cout << "Klient " << id << " czeka na wolny fotel..." << endl;
 
         // Oczekiwanie na zakończenie usługi i wydanie reszty
         Message responseMsg;
@@ -147,13 +160,6 @@ void Klient::dzialaj() {
         sleep(1);
 
         money += reszta;
-
-        // Zwolnienie miejsca w poczekalni
-        struct sembuf sb_signal = {0, 1, 0};
-        if (semop(salonPtr->semidPoczekalnia, &sb_signal, 1) == -1) {
-            perror("Blad: semop signal on poczekalnia");
-            exit(EXIT_FAILURE);
-        }
 
         cout << "Klient " << id << " opuszcza salon i wraca do zarabiania pieniedzy." << endl;
         sleep(1);

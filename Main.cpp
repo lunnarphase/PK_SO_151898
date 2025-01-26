@@ -33,8 +33,8 @@ int Tk;                       // godzina zamkniecia salonu
 int aktualnaGodzina;          // symulowana aktualna godzina
 bool salonOtwarty = true;     // flaga informujaca o tym, czy salon jest otwarty
 
-Salon salon(0, 0);  // Will be initialized after configuration
-Kasa kasa;          // Kasa instance
+Salon salon(0, 0);  
+Kasa kasa;          
 
 std::vector<pid_t> clientPIDs;  // Wektor PID-ów klientów
 std::vector<pid_t> barberPIDs;  // Wektor PID-ów fryzjerów

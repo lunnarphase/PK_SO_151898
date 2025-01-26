@@ -31,8 +31,8 @@ Fryzjer::Fryzjer(int id, Salon* salonPtr, Kasa* kasaPtr) : id(id), salonPtr(salo
 
 void Fryzjer::dzialaj() 
 {
-    signal(SIGUSR1, obslugaSygnalu1);
-    signal(SIGUSR2, obslugaSygnalu2);
+    signal(SIGUSR1, obslugaSygnalu1); // ustawienie funkcji obslugaSygnalu1 jako obslugę sygnału SIGUSR1
+    signal(SIGUSR2, obslugaSygnalu2); // ustawienie funkcji obslugaSygnalu2 jako obslugę sygnału SIGUSR2
 
     key_t key = MSGQUEUE_KEY;                   // Klucz kolejki komunikatow
     int msgid = msgget(key, 0600 | IPC_CREAT);  // Utworzenie kolejki komunikatow
@@ -91,7 +91,6 @@ void Fryzjer::dzialaj()
         }
 
         // Symulacja obsługi klienta przez określony czas
-        // cout << "\033[1;34mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
         cout << "\033[1;94mFryzjer " << id << " obsługuje klienta " << klientId << ".\033[0m" << endl;
         int czasObslugi = 3;  // Czas obsługi w sekundach
         int czasSpedzony = 0;
@@ -109,8 +108,8 @@ void Fryzjer::dzialaj()
         // Wydawanie reszty
         while (true) {
             int wydane10 = 0, wydane20 = 0, wydane50 = 0;
-            if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) {
-                cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl"
+            if (kasaPtr->wydajReszte(reszta, wydane10, wydane20, wydane50)) { // Przekazanie wartości do metody przez wskaźnik kasaPtr
+                cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl" 
                      << " - $10x" << wydane10 << " " << "$20x" << wydane20 << " " << "$50x" << wydane50 << endl;
                 kasaPtr->printBanknotes();
                 #if HAS_SLEEP == 1
@@ -132,13 +131,13 @@ void Fryzjer::dzialaj()
         responseMsg.paymentAmount = reszta; // Kwota reszty
         responseMsg.pid = getpid();         // PID fryzjera
 
-        // Wysłanie wiadomości do klienta
+        // Wysłanie wiadomości (struktury) do klienta za pomocą kolejki komunikatów
         if (msgsnd(msgid, &responseMsg, sizeof(Message) - sizeof(long), 0) == -1) {
             perror("Blad: msgsnd do klienta");
             exit(EXIT_FAILURE);
         }
 
-        // Zwalnianie fotela
+        // Zwolnianie fotela dla nastepnego klienta (koniec obslugi) - zwolnienie semafora
         struct sembuf sb_fotel_release = {0, 1, 0};
         if (semop(salonPtr->semidFotele, &sb_fotel_release, 1) == -1) {
             perror("Blad: semop signal on fotele");

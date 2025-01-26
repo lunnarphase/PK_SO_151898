@@ -32,11 +32,11 @@ Klient::Klient(int id, Salon* salonPtr, Kasa* kasaPtr) : id(id), salonPtr(salonP
 
 void Klient::dzialaj() 
 {
-    signal(SIGUSR2, obslugaSygnalu2);
+    signal(SIGUSR2, obslugaSygnalu2); // ustawienie funkcji obslugaSygnalu2 jako obslugę sygnału SIGUSR2
 
     while (!sygnal2 && salonOtwarty) 
     {
-        // Klient zarabia pieniadze, aż uzbiera co najmniej 50 zł
+        // Klient zarabia pieniadze, az uzbiera co najmniej 50 zł
         while (money < 50 && !sygnal2 && salonOtwarty) {
             cout << "\033[1;33mKlient " << id << " zarabia pieniadze. Aktualnie ma: $" << money << "\033[0m" << endl;
             #if HAS_SLEEP == 1
@@ -64,7 +64,7 @@ void Klient::dzialaj()
         {
             // Jeśli brakuje miejsca w poczekalni
             if (errno == EAGAIN) { 
-                int cooldown = rand() % 8 + 3; // Czas oczekiwania na ponowną próbę
+                int cooldown = rand() % 8 + 3; // Czas oczekiwania na ponowną próbę (3 - 10 sekund)
                 cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni. Sproboje ponownie za " << cooldown << " sekund" << endl;
                 sleep(cooldown);
                 continue;
@@ -90,8 +90,10 @@ void Klient::dzialaj()
 
         // Obliczenie liczby możliwych kwot płatności (30, 40, 50)
         int amountOptions = (maxPayment - payment) / 10 + 1;
+
         // Losowy indeks z zakresu 0 do amountOptions - 1
         int randomIndex = rand() % amountOptions;
+
         // Obliczenie kwoty płatności
         int totalPaymentAmount = payment + randomIndex * 10; // Kwoty: 30, 40, 50
 
@@ -124,10 +126,14 @@ void Klient::dzialaj()
 
         // Wyświetlenie informacji o płatności
         cout << "Klient " << id << " placi za usluge - ";
+
+        // Zliczenie banknotów
         map<int, int> banknoteCount;
         for (int bn : banknotes) {
             banknoteCount[bn]++;
         }
+
+        // Wyświetlenie liczby banknotów
         for (auto& pair : banknoteCount) {
             cout << "$" << pair.first << "x" << pair.second << " ";
         }

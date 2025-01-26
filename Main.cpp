@@ -110,7 +110,7 @@ int main()
         #endif
     }
 
-    // Oczekiwanie na zakonczenie watku symulujacego czas
+    // Oczekiwanie na dolaczenie watku symulujacego czas
     if (pthread_join(czasThread, nullptr) != 0) {
         perror("Blad: Nie udalo sie dolaczyc watku czasu !!!");
     }
@@ -194,11 +194,19 @@ void* symulujCzas(void* arg) {
     while (aktualnaGodzina < Tk) 
     {
         cout << "\n\033[1;32m|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\033[0m\n" << endl;
+        
         #if HAS_SLEEP == 1
-           sleep(1);
+            sleep(1);
         #endif
 
-        sleep(2);   // Czas odpowiadajacy 1 godzinie w salonie
+        #if HAS_SLEEP == 1
+            sleep(10);   // Czas odpowiadajacy 1 godzinie w salonie
+        #endif
+
+        #if HAS_SLEEP == 0
+            sleep(2);
+        #endif
+
         aktualnaGodzina++;
 
         if (aktualnaGodzina >= Tk) 

@@ -44,11 +44,14 @@ void Fryzjer::dzialaj()
 
     while (salonOtwarty && !sygnal2) 
     {
-        // Oczekiwanie na przybycie klienta
+        // Oczekiwanie na przybycie klienta (odebranie wiadomosci z kolejki komunikatow)
         Message msg;
-        if (msgrcv(msgid, &msg, sizeof(Message) - sizeof(long), MSG_TYPE_CLIENT_ARRIVAL, 0) == -1) {
-            if (errno == EINTR) {
-                if (sygnal1) {
+        if (msgrcv(msgid, &msg, sizeof(Message) - sizeof(long), MSG_TYPE_CLIENT_ARRIVAL, 0) == -1) 
+        {
+            if (errno == EINTR) 
+            {
+                if (sygnal1) 
+                {
                     cout << "Fryzjer " << id << " konczy prace ze wzgledu na sygnal 1" << endl;
                     #if HAS_SLEEP == 1
                         sleep(1);
@@ -67,7 +70,8 @@ void Fryzjer::dzialaj()
 
         // Obliczanie sumy otrzymanych banknotów i dodawanie ich do kasy
         int totalGivenAmount = 0;
-        for (int i = 0; i < msg.numBanknotes; ++i) {
+        for (int i = 0; i < msg.numBanknotes; ++i) 
+        {
             int banknote = msg.banknotes[i];
             totalGivenAmount += banknote;
             kasaPtr->dodajBanknot(banknote); // Dodanie banknotu do kasy
@@ -77,14 +81,20 @@ void Fryzjer::dzialaj()
         int reszta = totalGivenAmount - 30; // 30 zł to koszt usługi
 
         struct sembuf sb_fotel = {0, -1, 0};
-        if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) {
-            if (errno == EINTR) {
-                if (sygnal2 || !salonOtwarty) {
+        if (semop(salonPtr->semidFotele, &sb_fotel, 1) == -1) 
+        {
+            if (errno == EINTR) 
+            {
+                if (sygnal2 || !salonOtwarty) 
+                {
                     cout << "Fryzjer " << id << " konczy prace ze wzgledu na sygnal 1" << endl;
                     break;
                 }
                 continue;
-            } else {
+            } 
+            
+            else 
+            {
                 perror("Blad: semop - zajmowanie fotela");
                 exit(EXIT_FAILURE);
             }

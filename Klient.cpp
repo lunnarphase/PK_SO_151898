@@ -166,9 +166,12 @@ void Klient::dzialaj()
 
         // Oczekiwanie na zakończenie usługi i wydanie reszty
         Message responseMsg;
-        if (msgrcv(msgid, &responseMsg, sizeof(Message) - sizeof(long), getpid(), 0) == -1) {
-            if (errno == EINTR) {
-                if (sygnal2 || !salonOtwarty) {
+        if (msgrcv(msgid, &responseMsg, sizeof(Message) - sizeof(long), getpid(), 0) == -1) 
+        {
+            if (errno == EINTR) 
+            {
+                if (sygnal2 || !salonOtwarty) 
+                {
                     break;
                 }
                 continue;

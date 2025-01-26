@@ -34,7 +34,10 @@ void Klient::dzialaj()
 {
     signal(SIGUSR2, obslugaSygnalu2); // ustawienie funkcji obslugaSygnalu2 jako obslugę sygnału SIGUSR2
 
-    while (!sygnal2 && salonOtwarty) 
+    int retryCount = 0;
+    const int MAX_RETRIES = 5;
+
+    while (!sygnal2 && salonOtwarty && retryCount < MAX_RETRIES) 
     {
         // Klient zarabia pieniadze, az uzbiera co najmniej 50 zł
         while (money < 50 && !sygnal2 && salonOtwarty) {
@@ -63,9 +66,18 @@ void Klient::dzialaj()
         if (semop(salonPtr->semidPoczekalnia, &sb, 1) == -1) 
         {
             // Jeśli brakuje miejsca w poczekalni
-            if (errno == EAGAIN) { 
-                int cooldown = rand() % 8 + 3; // Czas oczekiwania na ponowną próbę (3 - 10 sekund)
+            if (errno == EAGAIN) 
+            { 
+                retryCount++;
+                if (retryCount >= MAX_RETRIES) 
+                {
+                    cout << "Klient " << id << " rezygnuje z oczekiwania i opuszcza salon." << endl;
+                    break;
+                }
+                int cooldown = rand() % 8 + 3;
+
                 cout << "Klient " << id << " opuszcza salon - brak miejsca w poczekalni. Sproboje ponownie za " << cooldown << " sekund" << endl;
+
                 sleep(cooldown);
                 continue;
             } else {
@@ -73,6 +85,7 @@ void Klient::dzialaj()
                 exit(EXIT_FAILURE);
             }
         }
+        retryCount = 0;
 
         // Pobranie aktualnej wartości semafora poczekalni
         int currPoczekalniaVal = semctl(salonPtr->semidPoczekalnia, 0, GETVAL);
@@ -168,7 +181,7 @@ void Klient::dzialaj()
         Message responseMsg;
         if (msgrcv(msgid, &responseMsg, sizeof(Message) - sizeof(long), getpid(), 0) == -1) 
         {
-            if (errno == EINTR) 
+            if (errno == EINTR)
             {
                 if (sygnal2 || !salonOtwarty) 
                 {
@@ -200,5 +213,5 @@ void Klient::dzialaj()
            sleep(1);
         #endif
     }
-
+    exit(0);
 }

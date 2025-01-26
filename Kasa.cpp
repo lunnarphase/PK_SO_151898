@@ -17,6 +17,7 @@ void Kasa::initSharedMemory()
     shmid = shmget(SHMKEY_KASA, 3 * sizeof(int), 0600 | IPC_CREAT);
     if (shmid == -1) {
         perror("Blad: shmget");
+
         exit(EXIT_FAILURE);
     }
 
@@ -24,6 +25,7 @@ void Kasa::initSharedMemory()
     int* shared_mem = (int*)shmat(shmid, nullptr, 0);
     if (shared_mem == (void*)-1) {
         perror("Blad: shmat");
+
         exit(EXIT_FAILURE);
     }
 
@@ -57,12 +59,14 @@ void Kasa::initSemaphore()
     semid = semget(SEMKEY_KASA, 1, 0600 | IPC_CREAT);
     if (semid == -1) {
         perror("Blad: semget");
+
         exit(EXIT_FAILURE);
     }
 
     // Inicjalizuj semafor na 1
     if (semctl(semid, 0, SETVAL, 1) == -1) {
         perror("Blad: semctl");
+
         exit(EXIT_FAILURE);
     }
 }
@@ -86,6 +90,7 @@ void Kasa::dodajBanknot(int nominal)
     // Czekaj na dostep do pamieci wspoldzielonej
     if (semop(semid, &sem_op, 1) == -1) {
         perror("Blad: semop wait");
+
         exit(EXIT_FAILURE);
     }
 
@@ -108,6 +113,7 @@ void Kasa::dodajBanknot(int nominal)
     // Sygnalizuj dostep do pamieci wspoldzielonej
     if (semop(semid, &sem_op, 1) == -1) {
         perror("Blad: Wystapil blad uzycia sygnalu semop");
+
         exit(EXIT_FAILURE);
     }
 }
@@ -123,6 +129,7 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
     // Czekaj na dostep do pamieci wspoldzielonej
     if (semop(semid, &sem_op, 1) == -1) {
         perror("Blad: semop wait");
+
         exit(EXIT_FAILURE);
     }
 
@@ -161,6 +168,7 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
         sem_op.sem_op = 1;  // Sygnal
         if (semop(semid, &sem_op, 1) == -1) {
             perror("Blad: Wystapil blad uzycia sygnalu semop");
+
             exit(EXIT_FAILURE);
         }
         return true;
@@ -171,6 +179,7 @@ bool Kasa::wydajReszte(int reszta, int& wydane10, int& wydane20, int& wydane50)
         // Sygnalizuj dostep do pamieci wspoldzielonej
         if (semop(semid, &sem_op, 1) == -1) {
             perror("Blad: Wystapil blad uzycia sygnalu semop");
+
             exit(EXIT_FAILURE);
         }
         return false;

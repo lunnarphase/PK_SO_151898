@@ -1,6 +1,6 @@
 #pragma once
 
-#define HAS_SLEEP 1
+#define HAS_SLEEP 0
 
 // 0 - funkcje sleep() wylaczone
 

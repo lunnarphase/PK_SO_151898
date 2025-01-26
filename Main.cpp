@@ -9,6 +9,7 @@
 #include <limits>
 #include <pthread.h>
 #include <sys/ipc.h>
+#include <sys/msg.h>
 #include <vector>
 
 #include "Salon.h"
@@ -22,6 +23,7 @@ using namespace std;
 
 void pobierzKonfiguracje();
 void* symulujCzas(void* arg);
+void obslugaSygnaluZ(int signum);
 
 int F;               // liczba fryzjerow (F > 1)
 int N;               // liczba foteli (N < F)
@@ -61,12 +63,18 @@ int main()
 
     signal(SIGUSR1, obslugaSygnalu1);  // Sygnal 1
     signal(SIGUSR2, obslugaSygnalu2);  // Sygnal 2
+    signal(SIGTSTP, obslugaSygnaluZ);  // Sygnal Ctrl+Z
 
     // Utworzenie procesow fryzjerow
     for (int i = 1; i <= F; ++i) {
         pid_t pid = fork();
-        if (pid == -1) {
+        if (pid == -1) 
+        {
             perror("Blad: Wystapil blad przy tworzeniu procesow fryzjerow");
+            for (pid_t existingPID : barberPIDs) 
+            {
+                waitpid(existingPID, nullptr, 0);
+            }
             exit(EXIT_FAILURE);
         }
         if (pid == 0) { // Proces potomny - Fryzjer
@@ -94,8 +102,13 @@ int main()
     // Utworzenie procesow klientow
     for (int i = 1; i <= LICZBA_KLIENTOW; ++i) {
         pid_t pid = fork();
-        if (pid == -1) {
+        if (pid == -1) 
+        {
             perror("Error creating client process");
+            for (pid_t existingPID : clientPIDs) 
+            {
+                waitpid(existingPID, nullptr, 0);
+            }            
             exit(EXIT_FAILURE);
         }
         if (pid == 0) { // Proces potomny - Klient
@@ -134,11 +147,12 @@ int main()
 
     cout << "\n\033[1;31m=#= Salon zakonczyl prace =#=\033[0m\n" << endl;
 
-    // Usuniecie pamieci wspoldzielonej i semaforow
+    cout << "\n\033[1;31m Nasteuje usuniecie pamieci wspoldzielonej i semaforow ...\033[0m\n" << endl;
     kasa.removeSharedMemory();
     kasa.removeSemaphore();
     salon.removeSharedMemory();
     salon.removeSemaphores();
+    cout << "\n\033[1;31m=#= Usuniecie pamieci wspoldzielonej i semaforow zakonczone =#=\033[0m\n" << endl;
 
     return 0;
 }
@@ -204,7 +218,7 @@ void* symulujCzas(void* arg) {
         #endif
 
         #if HAS_SLEEP == 0
-            sleep(2);
+            sleep(3);
         #endif
 
         aktualnaGodzina++;
@@ -213,6 +227,8 @@ void* symulujCzas(void* arg) {
         {
             salonOtwarty = false;
             cout << "\n\033[1;31m!!! Salon wlasnie zostal zamkniety !!!\033[0m\n" << endl;
+            cout << "\n\033[1;31mNastepuje usuniecie wszystkich procesow klientow i fryzjerow...\033[0m\n" << endl;
+            cout << "\n\n\033[1;31mOczekiwanie na zakonczenie procesow...\033[0m\n" << endl;
             #if HAS_SLEEP == 1
                 sleep(2);
             #endif
@@ -224,8 +240,52 @@ void* symulujCzas(void* arg) {
             for (pid_t pid : barberPIDs) {
                 kill(pid, SIGUSR2);
             }
+            cout << "\n\033[1;31m!!! Wszystkie procesy klientow i fryzjerow zostaly poprawnie zakonczone !!!\033[0m\n" << endl;
             break;
         }
     }
     return nullptr;
+}
+
+void obslugaSygnaluZ(int signum) {
+
+    cout << "\n\033[1;31mOtrzymano sygnal SIGTSTP (Ctrl+Z). Trwa oczyszczanie i zamykanie programu...\033[0m\n";
+
+    salonOtwarty = false;
+
+    for (pid_t pid : clientPIDs) {
+        kill(pid, SIGUSR2);
+    }
+
+    for (pid_t pid : clientPIDs) {
+        waitpid(pid, NULL, 0);
+    }
+
+    for (pid_t pid : barberPIDs) {
+        kill(pid, SIGUSR1); 
+    }
+
+    for (pid_t pid : barberPIDs) {
+        waitpid(pid, NULL, 0);
+    }
+
+    kasa.removeSharedMemory();
+    kasa.removeSemaphore();
+    salon.removeSharedMemory();
+    salon.removeSemaphores();
+
+    key_t key = MSGQUEUE_KEY; 
+    int msgid = msgget(key, 0600);
+    if (msgid != -1) 
+    {
+        if (msgctl(msgid, IPC_RMID, NULL) == -1) {
+            perror("Blad: Nastapil blad podczas usuwania kolejki komunikatow");
+        } else {
+            cout << "Kolejka komunikatow usunieta prawidlowo.\n";
+        }
+    } else {
+        perror("Blad: Error accessing message queue for removal");
+    }
+
+    exit(0);
 }

@@ -91,10 +91,7 @@ void Fryzjer::dzialaj()
                     break;
                 }
                 continue;
-            } 
-            
-            else 
-            {
+            } else {
                 perror("Blad: semop - zajmowanie fotela");
                 exit(EXIT_FAILURE);
             }
@@ -163,4 +160,5 @@ void Fryzjer::dzialaj()
             break;
         }
     }
+    exit(0);
 }

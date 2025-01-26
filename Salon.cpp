@@ -47,6 +47,7 @@ void Salon::initSharedMemory()
     wolneFotele = (int*)shmat(shmidFotele, nullptr, 0);
     if (wolneFotele == (void*)-1) {
         perror("Blad: shmat");
+
         exit(EXIT_FAILURE);
     }
 
@@ -59,12 +60,14 @@ void Salon::initSemaphores()
     semidFotele = semget(SEMKEY_FOTELE, 1, 0600 | IPC_CREAT);
     if (semidFotele == -1) {
         perror("Blad: semget for semidFotele");
+
         exit(EXIT_FAILURE);
     }
 
     // Ustaw wartosc semafora dla foteli
     if (semctl(semidFotele, 0, SETVAL, liczbaFoteli) == -1) {
         perror("Blad: semctl SETVAL for semidFotele");
+
         exit(EXIT_FAILURE);
     }
 
@@ -72,12 +75,14 @@ void Salon::initSemaphores()
     semidPoczekalnia = semget(SEMKEY_POCZEKALNIA, 1, 0600 | IPC_CREAT);
     if (semidPoczekalnia == -1) {
         perror("Blad: semget for semidPoczekalnia");
+
         exit(EXIT_FAILURE);
     }
 
     // Ustaw wartosc semafora dla poczekalni
     if (semctl(semidPoczekalnia, 0, SETVAL, pojemnoscPoczekalni) == -1) {
         perror("Blad: semctl SETVAL for semidPoczekalnia");
+
         exit(EXIT_FAILURE);
     }
 }

@@ -42,3 +42,9 @@ Zadanie stanowi rozszerzenie problemu spiacego fryzjera/golibrody na wielu fryzj
 1. Na polecenie kierownika (**sygnal 1**) dany fryzjer konczy prace przed zamknieciem salonu.
 2. Na polecenie kierownika (**sygnal 2**) wszyscy klienci (zarowno ci siedzacy na fotelach, jak i w poczekalni) natychmiast opuszczaja salon.
 
+## Komendy:
+make - buduje projekt
+
+./salon - uruchamia program
+
+

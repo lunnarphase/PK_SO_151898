@@ -7,6 +7,7 @@
 #include "Fryzjer.h"
 #include "ObslugaSygnalu.h"
 #include "KluczeIPC.h"
+#include "define_sleep.h"
 
 using namespace std;
 
@@ -49,7 +50,9 @@ void Fryzjer::dzialaj()
             if (errno == EINTR) {
                 if (sygnal1) {
                     cout << "Fryzjer " << id << " konczy prace ze wzgledu na sygnal 1" << endl;
-                    sleep(1);
+                    #if HAS_SLEEP == 1
+                        sleep(1);
+                    #endif
                     break;
                 }
                 continue;
@@ -93,7 +96,9 @@ void Fryzjer::dzialaj()
         int czasObslugi = 3;  // Czas obsługi w sekundach
         int czasSpedzony = 0;
         while (czasSpedzony < czasObslugi && !sygnal2) {
-            sleep(1);
+            #if HAS_SLEEP == 1
+                sleep(1);
+            #endif
             czasSpedzony++;
         }
         if (sygnal2) {
@@ -108,11 +113,15 @@ void Fryzjer::dzialaj()
                 cout << "Fryzjer " << id << " wydaje klientowi " << klientId << " reszte: " << reszta << " zl"
                      << " - $10x" << wydane10 << " " << "$20x" << wydane20 << " " << "$50x" << wydane50 << endl;
                 kasaPtr->printBanknotes();
-                sleep(1);
+                #if HAS_SLEEP == 1
+                    sleep(1);
+                #endif
                 break;
             } else {
                 cout << "Fryzjer " << id << " czeka na srodki w kasie, aby wydac reszte klientowi " << klientId << endl;
-                sleep(1);
+                #if HAS_SLEEP == 1
+                    sleep(1);
+                #endif
             }
         }
 
@@ -139,7 +148,9 @@ void Fryzjer::dzialaj()
         // Sprawdzenie czy otrzymano sygnal 1
         if (sygnal1) {
             cout << "\nOdebrano sygnal 1. Fryzjer " << id << " konczy prace" << endl;
-            sleep(1);
+            #if HAS_SLEEP == 1
+                sleep(1);
+            #endif
             break;
         }
     }

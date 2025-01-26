@@ -16,6 +16,7 @@
 #include "Fryzjer.h"
 #include "Klient.h"
 #include "ObslugaSygnalu.h"
+#include "define_sleep.h"
 
 using namespace std;
 
@@ -104,7 +105,9 @@ int main()
         } else { 
             clientPIDs.push_back(pid); // Proces rodzic - zapisuje PID klienta
         }
-        sleep(rand() % 3 + 1);  // Losowy czas miedzy utworzeniem kolejnych klientow (1-3 sekundy)
+        #if HAS_SLEEP == 1
+            sleep(rand() % 3 + 1);  // Losowy czas miedzy utworzeniem kolejnych klientow (1-3 sekundy)
+        #endif
     }
 
     // Oczekiwanie na zakonczenie watku symulujacego czas
@@ -142,9 +145,9 @@ int main()
 
 void pobierzKonfiguracje() 
 {
-    cout << "Wprowadz liczbe fryzjerow (1 < F < 10): ";
-    while (!(cin >> F) || F <= 1 || F >= 10) {
-        cout << "\nLiczba fryzjerow musi byc wieksza niz 1 i mniejsza niz 10. Sprobuj ponownie: ";
+    cout << "Wprowadz liczbe fryzjerow (F > 1): ";
+    while (!(cin >> F) || F <= 1) {
+        cout << "\nLiczba fryzjerow musi byc wieksza niz 1. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -163,9 +166,9 @@ void pobierzKonfiguracje()
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    cout << "Wprowadz poczatkowa liczbe klientow (0 < LICZBA_KLIENTOW < 10): ";
-    while (!(cin >> LICZBA_KLIENTOW) || LICZBA_KLIENTOW <= 0 || LICZBA_KLIENTOW >= 10) {
-        cout << "\nLiczba klientow musi byc wieksza od 0 i mniejsza niz 10. Sprobuj ponownie: ";
+    cout << "Wprowadz poczatkowa liczbe klientow (LICZBA_KLIENTOW > 0): ";
+    while (!(cin >> LICZBA_KLIENTOW) || LICZBA_KLIENTOW <= 0) {
+        cout << "\nLiczba klientow musi byc wieksza od 0. Sprobuj ponownie: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -191,16 +194,20 @@ void* symulujCzas(void* arg) {
     while (aktualnaGodzina < Tk) 
     {
         cout << "\n\033[1;32m|| Aktualna godzina w salonie: " << aktualnaGodzina << ":00 ||\033[0m\n" << endl;
-        sleep(1);
+        #if HAS_SLEEP == 1
+           sleep(1);
+        #endif
 
-        sleep(10);   // Czas odpowiadajacy 1 godzinie w salonie
+        sleep(2);   // Czas odpowiadajacy 1 godzinie w salonie
         aktualnaGodzina++;
 
         if (aktualnaGodzina >= Tk) 
         {
             salonOtwarty = false;
             cout << "\n\033[1;31m!!! Salon wlasnie zostal zamkniety !!!\033[0m\n" << endl;
-            sleep(2);
+            #if HAS_SLEEP == 1
+                sleep(2);
+            #endif
 
             // Wyslij sygnał 2 do wszystkich procesow klientow
             for (pid_t pid : clientPIDs) {

@@ -9,6 +9,7 @@
 #include "Klient.h"
 #include "ObslugaSygnalu.h"
 #include "KluczeIPC.h"
+#include "define_sleep.h"
 
 using namespace std;
 
@@ -38,7 +39,9 @@ void Klient::dzialaj()
         // Klient zarabia pieniadze, aż uzbiera co najmniej 50 zł
         while (money < 50 && !sygnal2 && salonOtwarty) {
             cout << "\033[1;33mKlient " << id << " zarabia pieniadze. Aktualnie ma: $" << money << "\033[0m" << endl;
-            sleep(1);
+            #if HAS_SLEEP == 1
+                sleep(1);
+            #endif
             money += 10;
         }
         if (sygnal2 || !salonOtwarty) {
@@ -129,7 +132,9 @@ void Klient::dzialaj()
             cout << "$" << pair.first << "x" << pair.second << " ";
         }
         cout << "(Razem: $" << totalBanknotesAmount << ") - banknoty trafiaja do kasy" << endl;
-        sleep(1);
+        #if HAS_SLEEP == 1
+           sleep(1);
+        #endif
 
         // Wysłanie wiadomości do fryzjera
         Message msg;
@@ -175,12 +180,16 @@ void Klient::dzialaj()
 
         int reszta = responseMsg.paymentAmount;
         cout << "Klient " << id << " otrzymal reszte: $" << reszta << endl;
-        sleep(1);
+        #if HAS_SLEEP == 1
+           sleep(1);
+        #endif
 
         money += reszta;
 
         cout << "Klient " << id << " opuszcza salon i wraca do zarabiania pieniedzy." << endl;
-        sleep(1);
+        #if HAS_SLEEP == 1
+           sleep(1);
+        #endif
     }
 
 }
